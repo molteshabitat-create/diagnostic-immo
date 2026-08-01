@@ -83,7 +83,7 @@ export default function App() {
   const [error, setError] = useState(null);
 
   const handlePhotoChange = (e) => {
-    const files = Array.from(e.target.files).slice(0, 6);
+    const files = Array.from(e.target.files).slice(0, 10);
     setPhotos(files);
   };
 
@@ -319,7 +319,7 @@ export default function App() {
       <div className="form-card">
         <form onSubmit={handleSubmit} className="form">
           <label>
-            Photos du bien (max 6)
+            Photos du bien (max 10)
             <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques)</span>
             <input
               type="file"
