@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mentions légales & confidentialité — Diagnostic Immo IA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #F1F4F8;
+        --surface: #FFFFFF;
+        --ink: #1B2A3D;
+        --ink-dim: #5B6B7D;
+        --blueprint: #2F5C8A;
+        --line: #D3DCE4;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: 'IBM Plex Sans', sans-serif;
+        background-image:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+      .page { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+      .back {
+        display: inline-block;
+        margin-bottom: 24px;
+        color: var(--blueprint);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      h1 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 26px;
+        margin-bottom: 8px;
+      }
+      .updated { color: var(--ink-dim); font-size: 13px; margin-bottom: 32px; }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 26px;
+        margin-bottom: 20px;
+      }
+      h2 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 17px;
+        margin: 0 0 12px;
+        color: var(--blueprint);
+      }
+      p, li { font-size: 14.5px; line-height: 1.65; color: var(--ink); }
+      ul { padding-left: 20px; margin: 8px 0; }
+      .footer-note {
+        font-size: 12.5px;
+        color: var(--ink-dim);
+        margin-top: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <a href="/" class="back">← Retour au diagnostic</a>
+      <h1>Mentions légales & confidentialité</h1>
+      <p class="updated">Dernière mise à jour : juillet 2026</p>
+
+      <div class="card">
+        <h2>Éditeur du site</h2>
+        <p>
+          Ce site est édité dans le cadre de l'activité Moltes Habitat Pro.
+          Pour toute question, contactez-nous via la chaîne YouTube Moltes Habitat
+          ou les canaux de contact habituels de Moltes Habitat Pro.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Ce que fait l'outil avec vos données</h2>
+        <ul>
+          <li>Les photos et informations que vous soumettez sont envoyées à l'API d'Anthropic (Claude) pour générer le diagnostic.</li>
+          <li>Ces données ne sont pas stockées durablement sur nos serveurs après la génération du rapport : le traitement est réalisé à la volée, à chaque demande.</li>
+          <li>Nous ne vendons ni ne partageons vos photos ou informations avec des tiers à des fins commerciales.</li>
+          <li>Le rapport PDF est généré directement dans votre navigateur et vous appartient — nous n'en conservons pas de copie de notre côté.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Limites du diagnostic généré par IA</h2>
+        <p>
+          Ce diagnostic est généré par intelligence artificielle à partir de photos et d'informations
+          déclarées par l'utilisateur. Il fournit une orientation générale, pas une expertise
+          technique certifiée. Il ne remplace en aucun cas :
+        </p>
+        <ul>
+          <li>Un diagnostic de performance énergétique (DPE) officiel réalisé par un diagnostiqueur certifié</li>
+          <li>Une expertise bâtiment réalisée par un professionnel qualifié</li>
+          <li>Une visite physique du bien avant toute décision d'achat</li>
+        </ul>
+        <p>
+          Les estimations de budget travaux sont indicatives et peuvent varier significativement
+          selon l'état réel du bien, non vérifiable à distance depuis des photos.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Cookies et suivi</h2>
+        <p>
+          Ce site n'utilise pas de cookies publicitaires ni de traceurs tiers à des fins de
+          profilage commercial.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Contact</h2>
+        <p>
+          Pour toute question concernant ce service, vous pouvez nous écrire à
+          <a href="mailto:moltes.habitat@gmail.com" style="color: var(--blueprint);">moltes.habitat@gmail.com</a>.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Propriété intellectuelle</h2>
+        <p>
+          L'ensemble du contenu de ce site (textes, design, code, méthodologie de diagnostic)
+          est la propriété de Moltes Habitat Pro. Toute reproduction, totale ou partielle,
+          par quelque procédé que ce soit, sans autorisation préalable écrite, est interdite
+          et pourrait constituer une contrefaçon sanctionnée par les articles L.335-2 et
+          suivants du Code de la propriété intellectuelle.
+        </p>
+      </div>
+
+      <p class="footer-note">Moltes Habitat Pro © 2026 — Tous droits réservés</p>
+    </div>
+  </body>
+</html>

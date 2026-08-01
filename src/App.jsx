@@ -451,7 +451,8 @@ export default function App() {
       )}
 
       <footer className="footer">
-        <span>Moltes Habitat Pro © 2026</span>
+        <span>Moltes Habitat Pro © 2026 — Tous droits réservés</span>
+        <a href="/mentions-legales.html" className="footer-link">Mentions légales & confidentialité</a>
         <span>Diagnostic généré par IA — usage indicatif</span>
       </footer>
     </div>

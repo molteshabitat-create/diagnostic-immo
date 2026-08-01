@@ -421,3 +421,8 @@ button.secondary {
   flex-wrap: wrap;
   gap: 10px;
 }
+.footer-link {
+  color: var(--blueprint);
+  text-decoration: none;
+}
+.footer-link:hover { text-decoration: underline; }
