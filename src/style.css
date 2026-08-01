@@ -329,6 +329,55 @@ button[type="submit"] {
 }
 button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
 
+.loading-block {
+  margin-top: 4px;
+  padding: 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-align: center;
+}
+.loading-message {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--blueprint);
+  margin: 0 0 10px;
+  animation: pulse-text 1.8s ease-in-out infinite;
+}
+.progress-track {
+  height: 6px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blueprint), var(--heat));
+  border-radius: 4px;
+  transition: width 0.6s ease;
+  position: relative;
+  overflow: hidden;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes pulse-text {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-message { animation: none; }
+  .progress-fill::after { animation: none; }
+}
+
 .error {
   color: var(--heat);
   font-size: 13.5px;

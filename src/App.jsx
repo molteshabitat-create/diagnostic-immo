@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 
 // Redimensionne et compresse une image côté navigateur avant envoi.
@@ -78,6 +78,7 @@ export default function App() {
     annonce: ''
   });
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
@@ -90,6 +91,23 @@ export default function App() {
     const { name, type, value, checked } = e.target;
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
   };
+
+  const loadingMessages = [
+    "J'analyse vos photos…",
+    "Calcul de l'isolation et du chauffage en cours…",
+    "Je rédige votre rapport…"
+  ];
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingStep((prev) => (prev < loadingMessages.length - 1 ? prev + 1 : prev));
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -398,6 +416,18 @@ export default function App() {
           <button type="submit" disabled={loading}>
             {loading ? 'Analyse en cours…' : 'Lancer le diagnostic'}
           </button>
+
+          {loading && (
+            <div className="loading-block">
+              <p className="loading-message">{loadingMessages[loadingStep]}</p>
+              <div className="progress-track">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 90}%` }}
+                />
+              </div>
+            </div>
+          )}
         </form>
       </div>
 
