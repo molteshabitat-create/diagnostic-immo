@@ -41,6 +41,13 @@ function compressImage(file, maxWidth = 1600, quality = 0.85) {
   });
 }
 
+function reliabilityClass(value) {
+  if (value === 'Élevée') return 'high';
+  if (value === 'Moyenne') return 'medium';
+  if (value === 'Faible') return 'low';
+  return 'medium';
+}
+
 function ScanDiagram() {
   return (
     <div className="scan-diagram">
@@ -65,6 +72,7 @@ function ScanDiagram() {
 }
 
 export default function App() {
+  const [photoRightsConfirmed, setPhotoRightsConfirmed] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [form, setForm] = useState({
     periode_construction: '',
@@ -119,6 +127,11 @@ export default function App() {
       return;
     }
 
+    if (!photoRightsConfirmed) {
+      setError('Merci de confirmer que tu es autorisé à utiliser ces photos avant de lancer le diagnostic.');
+      return;
+    }
+
     setLoading(true);
     try {
       const images = await Promise.all(
@@ -137,10 +150,24 @@ export default function App() {
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
 
       const data = await res.json();
+
+      // Vérifie que le rapport contient vraiment du contenu avant de l'afficher.
+      // Sans ça, une réponse vide ou mal formée s'affiche comme un rapport "vide" au lieu d'une erreur claire.
+      const hasContent =
+        data && typeof data.enveloppe_thermique === 'string' && data.enveloppe_thermique.trim().length > 0;
+
+      if (!hasContent) {
+        throw new Error('Réponse incomplète du serveur');
+      }
+
       setResult(data);
     } catch (err) {
       console.error(err);
-      setError('Le diagnostic a échoué. Réessaie dans un instant.');
+      if (photos.length >= 8) {
+        setError('Le diagnostic a échoué, probablement à cause du nombre de photos (traitement trop long). Réessaie avec 5-6 photos maximum pour l\'instant.');
+      } else {
+        setError('Le diagnostic a échoué. Réessaie dans un instant.');
+      }
     } finally {
       setLoading(false);
     }
@@ -235,7 +262,10 @@ export default function App() {
     };
 
     if (result.analyse_annonce) {
-      addSection("Analyse du texte de l'annonce", result.analyse_annonce, {
+      const fiabiliteLine = result.fiabilite_annonce
+        ? `Fiabilité de l'annonce : ${result.fiabilite_annonce}${result.fiabilite_annonce_detail ? ' — ' + result.fiabilite_annonce_detail : ''}\n\n`
+        : '';
+      addSection("Analyse du texte de l'annonce", fiabiliteLine + result.analyse_annonce, {
         boxColor: [228, 235, 242],
         titleColor: BLUEPRINT
       });
@@ -348,6 +378,17 @@ export default function App() {
             )}
           </label>
 
+          {photos.length > 0 && (
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={photoRightsConfirmed}
+                onChange={(e) => setPhotoRightsConfirmed(e.target.checked)}
+              />
+              Je confirme être autorisé à utiliser ces photos (prises par moi-même ou dont l'usage m'est permis)
+            </label>
+          )}
+
           <label>
             Texte de l'annonce (optionnel)
             <span className="hint">Copiez-collez la description pour affiner l'analyse</span>
@@ -443,7 +484,15 @@ export default function App() {
           {result.analyse_annonce && (
             <div className="section annonce">
               <h3>Analyse du texte de l'annonce</h3>
+              {result.fiabilite_annonce && (
+                <div className={`reliability-badge reliability-${reliabilityClass(result.fiabilite_annonce)}`}>
+                  Fiabilité de l'annonce : {result.fiabilite_annonce}
+                </div>
+              )}
               <p>{result.analyse_annonce}</p>
+              {result.fiabilite_annonce_detail && (
+                <p className="reliability-detail">{result.fiabilite_annonce_detail}</p>
+              )}
             </div>
           )}
           <div className="section">

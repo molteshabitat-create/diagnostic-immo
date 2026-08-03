@@ -430,6 +430,34 @@ button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
 .section.vigilance { background: var(--heat-soft); padding: 14px 16px; border-radius: 7px; }
 .section.annonce { background: #E4EBF2; padding: 14px 16px; border-radius: 7px; }
 .section.annonce h3 { color: var(--blueprint); }
+
+.reliability-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.reliability-high {
+  background: #DCEEE3;
+  color: #2F6B4F;
+}
+.reliability-medium {
+  background: #FBEBD4;
+  color: #9A6A1F;
+}
+.reliability-low {
+  background: var(--heat-soft);
+  color: var(--heat);
+}
+.reliability-detail {
+  font-size: 13px !important;
+  color: var(--ink-dim) !important;
+  margin-top: 6px !important;
+  font-style: italic;
+}
 .section.budget .value {
   font-family: var(--font-mono);
   font-size: 20px;
