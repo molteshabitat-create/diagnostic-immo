@@ -498,6 +498,31 @@ button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
   margin-bottom: 6px;
 }
 
+.section.qa {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 14px 16px;
+}
+.qa-item {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.qa-item:first-of-type { border-top: none; padding-top: 4px; }
+.qa-question {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--blueprint);
+  margin: 0 0 5px;
+}
+.qa-reponse {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+}
+
 button.secondary {
   background: transparent;
   color: var(--ink);

@@ -360,6 +360,12 @@ export default function App() {
         { boxColor: [239, 246, 241], titleColor: [47, 107, 79] }
       );
     }
+    if (result.questions_reponses && result.questions_reponses.length > 0) {
+      const qaText = result.questions_reponses
+        .map((qa) => `Q: ${qa.question}\nR: ${qa.reponse}`)
+        .join('\n\n');
+      addSection('Questions probables de l\'acheteur — réponses prêtes', qaText);
+    }
     addSection('Score de transparence', result.score_transparence);
 
     // Ligne de séparation + disclaimer final
@@ -666,6 +672,17 @@ export default function App() {
                   <li key={i}>{arg}</li>
                 ))}
               </ul>
+            </div>
+          )}
+          {result.questions_reponses && result.questions_reponses.length > 0 && (
+            <div className="section qa">
+              <h3>Questions probables de l'acheteur — réponses prêtes</h3>
+              {result.questions_reponses.map((qa, i) => (
+                <div key={i} className="qa-item">
+                  <p className="qa-question">« {qa.question} »</p>
+                  <p className="qa-reponse">{qa.reponse}</p>
+                </div>
+              ))}
             </div>
           )}
           <div className="section">
