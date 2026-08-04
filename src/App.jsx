@@ -121,7 +121,9 @@ export default function App() {
     localisation: '',
     chauffage: '',
     dpe: '',
-    annonce: ''
+    annonce: '',
+    nom_agence: '',
+    reference_bien: ''
   });
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -264,10 +266,10 @@ export default function App() {
     let pageNum = 1;
 
     const drawFooter = () => {
-      doc.setFontSize(8);
+      doc.setFontSize(7);
       doc.setTextColor(...DIM);
       doc.setFont(undefined, 'normal');
-      doc.text('Moltes Habitat Pro — Diagnostic généré par IA — usage indicatif', marginX, pageHeight - 10);
+      doc.text('Simulation non contractuelle — outil Moltes Habitat Pro', marginX, pageHeight - 10);
       doc.text(String(pageNum), pageWidth - marginX, pageHeight - 10, { align: 'right' });
     };
 
@@ -280,23 +282,29 @@ export default function App() {
       }
     };
 
-    // Bandeau titre
+    // Bandeau titre — dynamique selon l'agence renseignée
     doc.setFillColor(...INK);
     doc.rect(0, 0, pageWidth, 32, 'F');
     doc.setFontSize(17);
     doc.setTextColor(255, 255, 255);
     doc.setFont(undefined, 'bold');
-    doc.text('Diagnostic technique du bien', marginX, 18);
+    const titreDoc = form.reference_bien
+      ? `Diagnostic technique — ${form.reference_bien}`
+      : 'Diagnostic technique du bien';
+    doc.text(titreDoc, marginX, 18);
     doc.setFontSize(9);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(200, 210, 220);
-    doc.text('Moltes Habitat Pro — Diagnostic IA', marginX, 26);
+    const sousTitreDoc = form.nom_agence
+      ? `Préparé par ${form.nom_agence}`
+      : 'Moltes Habitat Pro — Diagnostic IA';
+    doc.text(sousTitreDoc, marginX, 26);
     y = 42;
 
     doc.setFontSize(8.5);
     doc.setTextColor(...DIM);
     doc.text(
-      "Généré par intelligence artificielle — usage indicatif, ne remplace pas une expertise sur site",
+      'Simulation générée par intelligence artificielle — usage indicatif uniquement',
       marginX,
       y
     );
@@ -349,9 +357,13 @@ export default function App() {
       (result.points_vigilance || []).map((p) => `• ${p}`).join('\n'),
       { boxColor: [243, 227, 216], titleColor: HEAT }
     );
+    const budgetPostesText =
+      result.budget_postes && result.budget_postes.length > 0
+        ? '\n\n' + result.budget_postes.map((p) => `• ${p.poste} : ${p.montant}`).join('\n')
+        : '';
     addSection(
       'Budget rénovation estimé',
-      `${result.budget_estime || ''}\n${result.budget_detail || ''}`
+      `${result.budget_estime || ''}\n${result.budget_detail || ''}${budgetPostesText}`
     );
     if (result.arguments_negociation && result.arguments_negociation.length > 0) {
       addSection(
@@ -369,14 +381,19 @@ export default function App() {
     addSection('Score de transparence', result.score_transparence);
 
     // Ligne de séparation + disclaimer final
-    addPageIfNeeded(20);
+    addPageIfNeeded(28);
     doc.setDrawColor(...LINE);
     doc.line(marginX, y, pageWidth - marginX, y);
     y += 8;
     doc.setFontSize(8);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(...HEAT);
+    doc.text('SIMULATION NON CONTRACTUELLE', marginX, y);
+    y += 5;
+    doc.setFont(undefined, 'normal');
     doc.setTextColor(...DIM);
     const disclaimerLines = doc.splitTextToSize(
-      "Ce diagnostic est généré par intelligence artificielle à partir de photos et d'informations déclarées. Il donne une orientation, pas une expertise certifiée — une visite et, si besoin, un professionnel restent nécessaires avant toute décision.",
+      "Ce document est une simulation générée par intelligence artificielle à partir de photos et d'informations déclarées, sans valeur contractuelle ni expertise certifiée. Il ne remplace en aucun cas un diagnostic réglementaire, une expertise professionnelle sur site, ni des devis d'artisans qualifiés. Les montants indiqués sont des ordres de grandeur indicatifs, non garantis. L'utilisateur de ce rapport reste seul responsable de son usage et des décisions prises sur cette base.",
       contentWidth
     );
     doc.text(disclaimerLines, marginX, y);
@@ -433,6 +450,19 @@ export default function App() {
       <h2 className="section-title">Lancer un diagnostic</h2>
       <div className="form-card">
         <form onSubmit={handleSubmit} className="form">
+          <div className="grid">
+            <label>
+              Nom de votre agence (optionnel)
+              <span className="hint">Apparaît sur le PDF exporté</span>
+              <input name="nom_agence" value={form.nom_agence} onChange={handleFormChange} placeholder="ex : Agence Dupont Immobilier" />
+            </label>
+            <label>
+              Référence du bien (optionnel)
+              <span className="hint">Pour vous y retrouver dans vos dossiers</span>
+              <input name="reference_bien" value={form.reference_bien} onChange={handleFormChange} placeholder="ex : Maison Rue des Lilas - REF102" />
+            </label>
+          </div>
+
           <label>
             Photos du bien (max 10)
             <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques). Si vous joignez aussi un DPE, limitez-vous à 6 photos max.</span>
@@ -663,6 +693,18 @@ export default function App() {
             <h3>Budget rénovation estimé</h3>
             <span className="value">{result.budget_estime}</span>
             <p>{result.budget_detail}</p>
+            {result.budget_postes && result.budget_postes.length > 0 && (
+              <table className="budget-table">
+                <tbody>
+                  {result.budget_postes.map((p, i) => (
+                    <tr key={i}>
+                      <td>{p.poste}</td>
+                      <td>{p.montant}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
           {result.arguments_negociation && result.arguments_negociation.length > 0 && (
             <div className="section negociation">
@@ -693,9 +735,11 @@ export default function App() {
           <button onClick={downloadPdf} className="secondary">Télécharger le PDF</button>
 
           <p className="disclaimer">
-            Ce diagnostic est généré par intelligence artificielle à partir de photos et
-            d'informations déclarées. Il donne une orientation, pas une expertise certifiée —
-            une visite et, si besoin, un professionnel restent nécessaires avant toute décision.
+            <strong>Simulation non contractuelle.</strong> Ce document est généré par intelligence
+            artificielle à partir de photos et d'informations déclarées, sans valeur contractuelle
+            ni expertise certifiée. Il ne remplace ni un diagnostic réglementaire, ni une expertise
+            professionnelle sur site, ni des devis d'artisans qualifiés. L'utilisateur reste seul
+            responsable de l'usage de ce document.
           </p>
         </div>
       )}

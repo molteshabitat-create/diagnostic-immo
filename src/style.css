@@ -483,6 +483,22 @@ button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
   display: block;
   margin-bottom: 6px;
 }
+.budget-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 13.5px;
+}
+.budget-table td {
+  padding: 6px 4px;
+  border-top: 1px solid var(--line);
+}
+.budget-table td:last-child {
+  text-align: right;
+  font-family: var(--font-mono);
+  color: var(--ink);
+  white-space: nowrap;
+}
 
 .section.negociation {
   background: #EFF6F1;
