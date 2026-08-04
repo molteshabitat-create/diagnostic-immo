@@ -441,17 +441,17 @@ export default function App() {
         <div className="step">
           <div className="num">01</div>
           <h3>Avant la visite</h3>
-          <p>Uploadez les photos du bien et le texte de l'annonce, copié-collé.</p>
+          <p>Photos du bien, texte de l'annonce, et le DPE officiel si vous l'avez — tout est utilisé.</p>
         </div>
         <div className="step">
           <div className="num">02</div>
           <h3>L'IA analyse</h3>
-          <p>Isolation, chauffage, signaux d'alerte — avec les incertitudes assumées.</p>
+          <p>Isolation, chauffage, cohérence DPE — les données officielles priment, les incertitudes sont assumées.</p>
         </div>
         <div className="step">
           <div className="num">03</div>
           <h3>Répondez avec assurance</h3>
-          <p>Budget chiffré et arguments de négociation prêts, exportables en PDF.</p>
+          <p>Budget chiffré, arguments de négociation et réponses aux questions acheteurs, prêts en PDF.</p>
         </div>
       </div>
 
