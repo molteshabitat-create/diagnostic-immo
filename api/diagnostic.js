@@ -16,7 +16,7 @@ Règles impératives :
 - Le budget de rénovation doit être une fourchette large et réaliste, jamais un chiffre unique et précis.
 - Si une information est invisible ou non déductible des photos, dis-le clairement plutôt que d'inventer.
 - Concernant le DPE : sa méthode de calcul a changé le 1er juillet 2021 (passage à la méthode "3CL", remplaçant l'ancienne méthode basée sur les factures d'énergie, jugée trop imprécise). Si le texte de l'annonce mentionne une date d'établissement du DPE (explicite, ou déductible d'une date de publication de l'annonce proche), utilise-la. Un DPE établi avant le 1er juillet 2021 est non seulement moins fiable, il est légalement invalide depuis le 1er janvier 2025 — signale-le explicitement si tu identifies cette situation, et précise qu'un nouveau DPE sera nécessaire. À l'automne 2021, un ajustement de calcul a temporairement pénalisé excessivement certains bâtiments anciens, corrigé fin 2021 — mentionne cette incertitude si la date se situe entre juillet et décembre 2021. Si aucune date n'est identifiable, précise simplement que la fiabilité du DPE déclaré ne peut pas être évaluée sans connaître sa date d'émission — ne l'invente jamais. Pour juger si une date est passée, future, ou cohérente, utilise systématiquement la "Date du jour" fournie en début de message comme référence — ne suppose jamais la date actuelle par toi-même.
-- Si un document DPE officiel (PDF ou photo) est fourni en pièce jointe : extrais-en directement la classe énergétique (lettre), la date d'émission, la consommation en kWh/m²/an, l'estimation GES si présente, et surtout la section "recommandations de travaux" du diagnostiqueur si elle est visible — ces recommandations professionnelles chiffrées sont une source bien plus fiable que ta propre estimation visuelle, utilise-les en priorité pour calibrer "budget_estime" et "budget_detail". Si les données du document DPE contredisent le champ "DPE connu" déclaré manuellement par l'utilisateur, utilise celles du document (plus fiable) et signale l'écart brièvement dans "score_transparence". Si le document fourni n'est pas lisible ou ne semble pas être un DPE, dis-le clairement plutôt que d'inventer des données.
+- Si des pages d'un document DPE officiel (converties en images, ou une photo directe) sont fournies en premier dans les images : extrais-en directement la classe énergétique (lettre), la date d'émission, la consommation en kWh/m²/an, l'estimation GES si présente, et surtout la section "recommandations de travaux" du diagnostiqueur si elle est visible — ces recommandations professionnelles chiffrées sont une source bien plus fiable que ta propre estimation visuelle, utilise-les en priorité pour calibrer "budget_estime" et "budget_detail". Si les données du document DPE contredisent le champ "DPE connu" déclaré manuellement par l'utilisateur, utilise celles du document (plus fiable) et signale l'écart brièvement dans "score_transparence". Si les pages fournies ne semblent pas être un DPE ou ne sont pas lisibles, dis-le clairement plutôt que d'inventer des données. Attention à ne pas confondre ces pages de document avec les photos du bien lui-même qui suivent — elles sont clairement identifiées comme telles dans le message.
 - Calibre ta sévérité sur l'isolation selon la période de construction déclarée (utilise l'année exacte si elle est fournie, sinon la tranche déclarée), sans l'affirmer comme une certitude : avant 1950, quasiment aucune isolation d'origine attendue ; 1950-1980, isolation minimale voire absente ; 1980-2000, premières réglementations thermiques mais souvent modestes ; 2000-2011, exigences RT2000/RT2005 modérées ; 2012-2020, RT2012/BBC généralisé, bonne isolation attendue ; 2020 et plus, RE2020, exigences très strictes, isolation et étanchéité à l'air excellentes attendues. Si une "rénovation thermique connue" est déclarée, nuance nettement à la hausse ton estimation même pour un bien ancien, mais reste prudent sur l'étendue réelle de cette rénovation (partielle vs complète) sans plus de détail. Sois donc nettement moins sévère sur un bien récent que sur un bien ancien non rénové, à état apparent équivalent.
 - Le type de bien (maison individuelle, maison mitoyenne, appartement) influence fortement les déperditions thermiques : une maison individuelle a 4 façades exposées, une maison mitoyenne en a moins (murs mitoyens non déperditifs), un appartement encore moins si les logements adjacents sont chauffés. Intègre cela dans ton analyse de l'enveloppe thermique.
 - Si une ou plusieurs photos extérieures sont fournies, cherche activement les signes d'isolation thermique par l'extérieur (ITE), en particulier ce signal fiable sur photo nette et rapprochée : des appuis de fenêtre en tôle/aluminium (souvent gris ou blanc, profilés, brillants) fixés en saillie — c'est un habillage quasi systématique posé lors d'une ITE. Cherche aussi : embrasures de fenêtres profondes, revêtement type bardage ou enduit épais uniforme. IMPORTANT sur la formulation : ne dis JAMAIS "aucun appui en tôle visible" ou "pas d'indice d'ITE identifiable" comme un constat d'absence — ce type de détail est difficile à garantir avec certitude sur une photo de façade entière, à distance, éventuellement compressée. Si tu n'es pas sûr à 100% de ce que tu vois, formule-le comme une limite de lecture ("les détails fins de la façade ne sont pas assez nets sur cette photo pour confirmer ou exclure une ITE"), jamais comme un verdict négatif qui sonnerait comme une certitude que tu n'as pas.
@@ -56,24 +56,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
-  const { images, form, dpeDocument } = req.body || {};
+  const { images, form, dpeImages } = req.body || {};
 
   if (!images || !Array.isArray(images) || images.length === 0) {
     return res.status(400).json({ error: 'Aucune photo reçue' });
   }
 
   try {
-    // On construit le contenu multimodal : document DPE (si fourni) + images + texte
+    // On construit le contenu multimodal : pages du DPE (si fourni) + images du bien + texte
     const content = [];
 
-    if (dpeDocument && dpeDocument.data) {
-      content.push({
-        type: dpeDocument.isPdf ? 'document' : 'image',
-        source: {
-          type: 'base64',
-          media_type: dpeDocument.media_type,
-          data: dpeDocument.data
-        }
+    if (dpeImages && Array.isArray(dpeImages) && dpeImages.length > 0) {
+      dpeImages.forEach((img) => {
+        content.push({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: img.media_type || 'image/jpeg',
+            data: img.data
+          }
+        });
       });
     }
 
@@ -99,7 +101,7 @@ Infos déclarées sur le bien :
 - Surface : ${form?.surface || 'non renseignée'} m²
 - Chauffage déclaré : ${form?.chauffage || 'non renseigné'}
 - DPE connu (déclaré manuellement par l'utilisateur) : ${form?.dpe || 'non renseigné'}
-${dpeDocument ? "\nUn document DPE officiel a été fourni en pièce jointe (PDF ou photo) : utilise les données qu'il contient en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessus, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur :\n"""${form.annonce}"""\n` : ''}
+${dpeImages && dpeImages.length > 0 ? "\nLes premières images fournies (avant les photos du bien) sont issues d'un document DPE officiel (PDF converti en images ou photo) : utilise les données qu'elles contiennent en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessus, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur :\n"""${form.annonce}"""\n` : ''}
 Analyse les photos, le document DPE si fourni, et le texte de l'annonce si fourni (en gardant un œil critique : les annonces enjolivent parfois la réalité) et fournis le diagnostic au format JSON demandé.`
       }
     );

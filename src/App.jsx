@@ -41,14 +41,34 @@ function compressImage(file, maxWidth = 1600, quality = 0.85) {
   });
 }
 
-// Conversion simple en base64, sans compression (utilisée pour les PDF, non compressibles via canvas)
-function fileToBase64Raw(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+// Convertit les premières pages d'un PDF en images JPEG compressées, directement dans le navigateur.
+// Évite d'envoyer un PDF lourd (souvent 3-6 Mo) : on ne garde que les pages utiles, en léger.
+async function pdfToCompressedImages(file, maxPages = 3) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pageCount = Math.min(pdf.numPages, maxPages);
+  const images = [];
+
+  for (let i = 1; i <= pageCount; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+    images.push({ media_type: 'image/jpeg', data: base64 });
+  }
+
+  return images;
 }
 
 function reliabilityClass(value) {
@@ -152,20 +172,18 @@ export default function App() {
         }))
       );
 
-      let dpeDocument = null;
+      let dpeImages = [];
       if (dpeFile) {
         const isPdf = dpeFile.type === 'application/pdf';
-        dpeDocument = {
-          media_type: isPdf ? 'application/pdf' : 'image/jpeg',
-          data: isPdf ? await fileToBase64Raw(dpeFile) : await compressImage(dpeFile),
-          isPdf
-        };
+        dpeImages = isPdf
+          ? await pdfToCompressedImages(dpeFile)
+          : [{ media_type: 'image/jpeg', data: await compressImage(dpeFile) }];
       }
 
       const res = await fetch('/api/diagnostic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images, form, dpeDocument })
+        body: JSON.stringify({ images, form, dpeImages })
       });
 
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
@@ -419,7 +437,7 @@ export default function App() {
 
           <label>
             DPE officiel (PDF ou photo, optionnel)
-            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul</span>
+            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul. Les PDF sont automatiquement allégés (3 premières pages).</span>
             <input
               type="file"
               accept="application/pdf,image/*"
