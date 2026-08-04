@@ -423,9 +423,9 @@ export default function App() {
         <div className="eyebrow">Outil pro pour agents & chasseurs immobiliers</div>
         <h1>Soyez transparent.<br /><em>Ayez les réponses avant les questions.</em></h1>
         <p className="lead">
-          Avant chaque visite, un diagnostic technique complet généré à partir de photos et du
-          texte de l'annonce — isolation, chauffage, points de vigilance, budget travaux chiffré
-          et arguments de négociation prêts à l'emploi. Ce qu'un œil d'expert verrait, en 30 secondes.
+          Diagnostic technique complet généré à partir de photos et du texte de l'annonce :
+          isolation, chauffage, points de vigilance, budget travaux chiffré et arguments de
+          négociation prêts à l'emploi. Ce qu'un œil d'expert verrait, en 30 secondes.
           Repassez aussi vos anciennes annonces au crible pour débloquer ou améliorer vos chances de vente.
         </p>
         <p className="lead-punch">
@@ -444,8 +444,8 @@ export default function App() {
       <div className="steps">
         <div className="step">
           <div className="num">01</div>
-          <h3>Avant la visite</h3>
-          <p>Photos du bien, texte de l'annonce, et le DPE officiel si vous l'avez — tout est utilisé.</p>
+          <h3>Préparation</h3>
+          <p>Photos du bien, texte de l'annonce, et le DPE officiel si vous l'avez — tout est utilisé. Simulez aussi votre texte avant parution de l'annonce !</p>
         </div>
         <div className="step">
           <div className="num">02</div>
