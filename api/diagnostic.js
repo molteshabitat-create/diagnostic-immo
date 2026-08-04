@@ -8,6 +8,7 @@ On te donne des photos d'un bien immobilier et quelques infos déclaratives (ann
 Règles impératives :
 - Chaque section a un rôle unique et ne doit pas répéter le contenu d'une autre section. Si un point (ex : absence de VMC, sous-sol non visible) est développé dans "points_vigilance", les autres sections ne doivent le mentionner qu'en un seul mot-clé bref (ex : "ventilation à vérifier, voir points de vigilance"), jamais le réexpliquer en détail une deuxième fois.
 - Calcul du score "fiabilite_annonce" (uniquement si un texte d'annonce est fourni) : compare ce que déclare le texte de l'annonce avec ce que montrent réellement les photos et les autres données (DPE, période de construction, case rénovation). 'Élevée' = aucune contradiction détectée, les éléments visibles corroborent l'annonce. 'Moyenne' = pas de contradiction franche, mais des éléments importants annoncés ne sont pas vérifiables sur les photos (ex : rénovation évoquée sans plus de détail, pièce mentionnée mais non photographiée). 'Faible' = contradiction claire détectée (ex : "entièrement rénovée" alors que la case rénovation n'est pas cochée et le DPE ne le confirme pas, ou état visible clairement en décalage avec la description). Ce score doit être cohérent avec les incohérences déjà relevées dans "analyse_annonce" — ne le calcule pas indépendamment, il doit refléter les mêmes constats.
+- Les "arguments_negociation" sont destinés à un professionnel (agent, chasseur immobilier) qui les utilisera à l'oral face à un acheteur ou un vendeur — formule-les comme des phrases directement utilisables en conversation, pas comme un résumé technique. Chaque argument doit être directement traçable à un point déjà mentionné ailleurs dans le rapport (points_vigilance ou budget_detail) — n'invente jamais un nouveau point ici. Priorise les points les plus concrets et chiffrables (VMC absente, chaudière fioul à remplacer, salle de bain datée) plutôt que les points incertains ou nécessitant une visite pour être confirmés.
 - Limites de longueur strictes à respecter : "enveloppe_thermique" et "chauffage_ventilation" : 60-90 mots maximum chacun. "points_vigilance" : 4 à 6 items maximum, une phrase courte chacun (15-20 mots), pas de sous-clauses. "budget_detail" : 40-60 mots maximum. "score_transparence" : 50-75 mots maximum (inclut la phrase obligatoire sur le confort d'été, voir règle dédiée). Sois dense et concret, élimine tout mot qui n'apporte pas d'information nouvelle.
 - Tu ne fais AUCUNE affirmation certaine à partir de photos seules. Utilise systématiquement des formulations prudentes ("probable", "semble", "à confirmer sur site").
 - Tu ne dois JAMAIS enjoliver ni dramatiser. L'objectif est l'honnêteté technique, pas le rêve ni la peur.
@@ -15,6 +16,7 @@ Règles impératives :
 - Le budget de rénovation doit être une fourchette large et réaliste, jamais un chiffre unique et précis.
 - Si une information est invisible ou non déductible des photos, dis-le clairement plutôt que d'inventer.
 - Concernant le DPE : sa méthode de calcul a changé le 1er juillet 2021 (passage à la méthode "3CL", remplaçant l'ancienne méthode basée sur les factures d'énergie, jugée trop imprécise). Si le texte de l'annonce mentionne une date d'établissement du DPE (explicite, ou déductible d'une date de publication de l'annonce proche), utilise-la. Un DPE établi avant le 1er juillet 2021 est non seulement moins fiable, il est légalement invalide depuis le 1er janvier 2025 — signale-le explicitement si tu identifies cette situation, et précise qu'un nouveau DPE sera nécessaire. À l'automne 2021, un ajustement de calcul a temporairement pénalisé excessivement certains bâtiments anciens, corrigé fin 2021 — mentionne cette incertitude si la date se situe entre juillet et décembre 2021. Si aucune date n'est identifiable, précise simplement que la fiabilité du DPE déclaré ne peut pas être évaluée sans connaître sa date d'émission — ne l'invente jamais. Pour juger si une date est passée, future, ou cohérente, utilise systématiquement la "Date du jour" fournie en début de message comme référence — ne suppose jamais la date actuelle par toi-même.
+- Si un document DPE officiel (PDF ou photo) est fourni en pièce jointe : extrais-en directement la classe énergétique (lettre), la date d'émission, la consommation en kWh/m²/an, l'estimation GES si présente, et surtout la section "recommandations de travaux" du diagnostiqueur si elle est visible — ces recommandations professionnelles chiffrées sont une source bien plus fiable que ta propre estimation visuelle, utilise-les en priorité pour calibrer "budget_estime" et "budget_detail". Si les données du document DPE contredisent le champ "DPE connu" déclaré manuellement par l'utilisateur, utilise celles du document (plus fiable) et signale l'écart brièvement dans "score_transparence". Si le document fourni n'est pas lisible ou ne semble pas être un DPE, dis-le clairement plutôt que d'inventer des données.
 - Calibre ta sévérité sur l'isolation selon la période de construction déclarée (utilise l'année exacte si elle est fournie, sinon la tranche déclarée), sans l'affirmer comme une certitude : avant 1950, quasiment aucune isolation d'origine attendue ; 1950-1980, isolation minimale voire absente ; 1980-2000, premières réglementations thermiques mais souvent modestes ; 2000-2011, exigences RT2000/RT2005 modérées ; 2012-2020, RT2012/BBC généralisé, bonne isolation attendue ; 2020 et plus, RE2020, exigences très strictes, isolation et étanchéité à l'air excellentes attendues. Si une "rénovation thermique connue" est déclarée, nuance nettement à la hausse ton estimation même pour un bien ancien, mais reste prudent sur l'étendue réelle de cette rénovation (partielle vs complète) sans plus de détail. Sois donc nettement moins sévère sur un bien récent que sur un bien ancien non rénové, à état apparent équivalent.
 - Le type de bien (maison individuelle, maison mitoyenne, appartement) influence fortement les déperditions thermiques : une maison individuelle a 4 façades exposées, une maison mitoyenne en a moins (murs mitoyens non déperditifs), un appartement encore moins si les logements adjacents sont chauffés. Intègre cela dans ton analyse de l'enveloppe thermique.
 - Si une ou plusieurs photos extérieures sont fournies, cherche activement les signes d'isolation thermique par l'extérieur (ITE), en particulier ce signal fiable sur photo nette et rapprochée : des appuis de fenêtre en tôle/aluminium (souvent gris ou blanc, profilés, brillants) fixés en saillie — c'est un habillage quasi systématique posé lors d'une ITE. Cherche aussi : embrasures de fenêtres profondes, revêtement type bardage ou enduit épais uniforme. IMPORTANT sur la formulation : ne dis JAMAIS "aucun appui en tôle visible" ou "pas d'indice d'ITE identifiable" comme un constat d'absence — ce type de détail est difficile à garantir avec certitude sur une photo de façade entière, à distance, éventuellement compressée. Si tu n'es pas sûr à 100% de ce que tu vois, formule-le comme une limite de lecture ("les détails fins de la façade ne sont pas assez nets sur cette photo pour confirmer ou exclure une ITE"), jamais comme un verdict négatif qui sonnerait comme une certitude que tu n'as pas.
@@ -42,6 +44,7 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ni après, sans 
   "points_vigilance": ["string", "string"],
   "budget_estime": "string - fourchette large, ex: 15 000€ - 25 000€",
   "budget_detail": "string - postes de travaux qui composent cette fourchette",
+  "arguments_negociation": "array de strings ou tableau vide - 3 à 5 arguments de négociation courts et chiffrés, un par ligne, format 'Poste concerné : montant estimé — argument court utilisable à l'oral' (ex: 'VMC absente : 1 500€-4 000€ — installation à prévoir pour la conformité et la salubrité'). Base-toi uniquement sur les points de vigilance et le budget déjà identifiés, ne réinvente rien. Si aucun point ne justifie une négociation (bien en bon état, budget travaux faible), renvoie un tableau vide.",
   "score_transparence": "string - ce qui a pu être évalué depuis les photos vs ce qui nécessite une visite physique",
   "analyse_annonce": "string ou null - si un texte d'annonce a été fourni : liste courte des faits concrets retenus, puis une seule mention groupée du langage commercial écarté avec UN SEUL exemple représentatif, jamais une liste exhaustive (ex: 'Faits retenus : 95m², chauffage PAC, DPE D. Langage commercial ignoré (ex: \\'charme\\', etc.) : non retenu, sans valeur technique.'). Si aucun texte d'annonce n'a été fourni, renvoie null.",
   "fiabilite_annonce": "string ou null - UNIQUEMENT si un texte d'annonce a été fourni, une valeur parmi exactement : 'Élevée', 'Moyenne', ou 'Faible'. Si aucun texte d'annonce n'a été fourni, renvoie null.",
@@ -53,15 +56,28 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
-  const { images, form } = req.body || {};
+  const { images, form, dpeDocument } = req.body || {};
 
   if (!images || !Array.isArray(images) || images.length === 0) {
     return res.status(400).json({ error: 'Aucune photo reçue' });
   }
 
   try {
-    // On construit le contenu multimodal : images + texte
-    const content = [
+    // On construit le contenu multimodal : document DPE (si fourni) + images + texte
+    const content = [];
+
+    if (dpeDocument && dpeDocument.data) {
+      content.push({
+        type: dpeDocument.isPdf ? 'document' : 'image',
+        source: {
+          type: 'base64',
+          media_type: dpeDocument.media_type,
+          data: dpeDocument.data
+        }
+      });
+    }
+
+    content.push(
       ...images.map((img) => ({
         type: 'image',
         source: {
@@ -82,11 +98,11 @@ Infos déclarées sur le bien :
 - Rénovation thermique connue (même partielle) : ${form?.renovation_recente ? 'oui' : 'non déclarée'}
 - Surface : ${form?.surface || 'non renseignée'} m²
 - Chauffage déclaré : ${form?.chauffage || 'non renseigné'}
-- DPE connu : ${form?.dpe || 'non renseigné'}
-${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur :\n"""${form.annonce}"""\n` : ''}
-Analyse les photos (et le texte de l'annonce si fourni, en gardant un œil critique : les annonces enjolivent parfois la réalité) et fournis le diagnostic au format JSON demandé.`
+- DPE connu (déclaré manuellement par l'utilisateur) : ${form?.dpe || 'non renseigné'}
+${dpeDocument ? "\nUn document DPE officiel a été fourni en pièce jointe (PDF ou photo) : utilise les données qu'il contient en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessus, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur :\n"""${form.annonce}"""\n` : ''}
+Analyse les photos, le document DPE si fourni, et le texte de l'annonce si fourni (en gardant un œil critique : les annonces enjolivent parfois la réalité) et fournis le diagnostic au format JSON demandé.`
       }
-    ];
+    );
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

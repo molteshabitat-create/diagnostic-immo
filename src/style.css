@@ -467,6 +467,20 @@ button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
   margin-bottom: 6px;
 }
 
+.section.negociation {
+  background: #EFF6F1;
+  border: 1px solid #C7DDCC;
+  border-radius: 7px;
+  padding: 14px 16px;
+}
+.section.negociation h3 { color: var(--ok); }
+.section.negociation ul { padding-left: 18px; margin: 0; }
+.section.negociation li {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
 button.secondary {
   background: transparent;
   color: var(--ink);

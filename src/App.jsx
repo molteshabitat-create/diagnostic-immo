@@ -41,6 +41,16 @@ function compressImage(file, maxWidth = 1600, quality = 0.85) {
   });
 }
 
+// Conversion simple en base64, sans compression (utilisée pour les PDF, non compressibles via canvas)
+function fileToBase64Raw(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function reliabilityClass(value) {
   if (value === 'Élevée') return 'high';
   if (value === 'Moyenne') return 'medium';
@@ -73,6 +83,7 @@ function ScanDiagram() {
 
 export default function App() {
   const [photoRightsConfirmed, setPhotoRightsConfirmed] = useState(false);
+  const [dpeFile, setDpeFile] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [form, setForm] = useState({
     periode_construction: '',
@@ -141,10 +152,20 @@ export default function App() {
         }))
       );
 
+      let dpeDocument = null;
+      if (dpeFile) {
+        const isPdf = dpeFile.type === 'application/pdf';
+        dpeDocument = {
+          media_type: isPdf ? 'application/pdf' : 'image/jpeg',
+          data: isPdf ? await fileToBase64Raw(dpeFile) : await compressImage(dpeFile),
+          isPdf
+        };
+      }
+
       const res = await fetch('/api/diagnostic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images, form })
+        body: JSON.stringify({ images, form, dpeDocument })
       });
 
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
@@ -281,6 +302,13 @@ export default function App() {
       'Budget rénovation estimé',
       `${result.budget_estime || ''}\n${result.budget_detail || ''}`
     );
+    if (result.arguments_negociation && result.arguments_negociation.length > 0) {
+      addSection(
+        'Arguments de négociation',
+        result.arguments_negociation.map((a) => `• ${a}`).join('\n'),
+        { boxColor: [239, 246, 241], titleColor: [47, 107, 79] }
+      );
+    }
     addSection('Score de transparence', result.score_transparence);
 
     // Ligne de séparation + disclaimer final
@@ -388,6 +416,24 @@ export default function App() {
               Je confirme être autorisé à utiliser ces photos (prises par moi-même ou dont l'usage m'est permis)
             </label>
           )}
+
+          <label>
+            DPE officiel (PDF ou photo, optionnel)
+            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul</span>
+            <input
+              type="file"
+              accept="application/pdf,image/*"
+              onChange={(e) => setDpeFile(e.target.files[0] || null)}
+              id="dpe-input"
+              className="file-input-hidden"
+            />
+            <div className="upload-zone">
+              <label htmlFor="dpe-input" className="upload-btn">Choisir un fichier</label>
+              <span className="upload-status">
+                {dpeFile ? dpeFile.name : 'Aucun fichier sélectionné'}
+              </span>
+            </div>
+          </label>
 
           <label>
             Texte de l'annonce (optionnel)
@@ -514,6 +560,16 @@ export default function App() {
             <span className="value">{result.budget_estime}</span>
             <p>{result.budget_detail}</p>
           </div>
+          {result.arguments_negociation && result.arguments_negociation.length > 0 && (
+            <div className="section negociation">
+              <h3>Arguments de négociation</h3>
+              <ul>
+                {result.arguments_negociation.map((arg, i) => (
+                  <li key={i}>{arg}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="section">
             <h3>Score de transparence</h3>
             <p>{result.score_transparence}</p>
