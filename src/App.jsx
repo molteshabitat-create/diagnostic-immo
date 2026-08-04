@@ -600,7 +600,7 @@ export default function App() {
           <label>
             Système(s) de rafraîchissement (si connu — cochez tout ce qui s'applique)
             <div className="checkbox-grid">
-              {['Aucun', 'PAC air-air (réversible)', 'Climatisation split', 'Puits canadien', 'Géothermie', 'VMC thermodynamique', 'Plancher rafraîchissant', 'Autre', 'Je ne sais pas'].map((option) => (
+              {['Aucun', 'Climatisation réversible / PAC air-air (splits)', 'Puits canadien', 'Géothermie', 'VMC thermodynamique', 'Plancher rafraîchissant', 'Autre', 'Je ne sais pas'].map((option) => (
                 <label key={option} className="checkbox-label checkbox-label-compact">
                   <input
                     type="checkbox"
