@@ -389,12 +389,12 @@ export default function App() {
       </header>
 
       <section className="hero">
-        <div className="eyebrow">Avant de visiter, sachez à quoi vous attendre</div>
-        <h1>On vous dit ce qui cloche.<br /><em>Pas ce qui vous fait rêver.</em></h1>
+        <div className="eyebrow">Outil pro pour agents & chasseurs immobiliers</div>
+        <h1>Soyez transparent.<br /><em>Ayez les réponses avant les questions.</em></h1>
         <p className="lead">
-          Un diagnostic technique honnête généré à partir des photos et du texte de l'annonce —
-          isolation, chauffage, points de vigilance, budget travaux réaliste. Pas de rendu qui
-          enjolive, juste ce qu'un œil d'expert verrait.
+          Avant chaque visite, un diagnostic technique complet généré à partir de photos et du
+          texte de l'annonce — isolation, chauffage, points de vigilance, budget travaux chiffré
+          et arguments de négociation prêts à l'emploi. Ce qu'un œil d'expert verrait, en 30 secondes.
         </p>
         <ScanDiagram />
       </section>
@@ -409,8 +409,8 @@ export default function App() {
       <div className="steps">
         <div className="step">
           <div className="num">01</div>
-          <h3>Uploadez</h3>
-          <p>Les photos du bien et le texte de l'annonce, copié-collé.</p>
+          <h3>Avant la visite</h3>
+          <p>Uploadez les photos du bien et le texte de l'annonce, copié-collé.</p>
         </div>
         <div className="step">
           <div className="num">02</div>
@@ -419,8 +419,8 @@ export default function App() {
         </div>
         <div className="step">
           <div className="num">03</div>
-          <h3>Rapport clair</h3>
-          <p>Budget travaux réaliste et score de transparence, exportable en PDF.</p>
+          <h3>Répondez avec assurance</h3>
+          <p>Budget chiffré et arguments de négociation prêts, exportables en PDF.</p>
         </div>
       </div>
 
