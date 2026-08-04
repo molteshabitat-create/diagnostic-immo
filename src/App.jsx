@@ -112,6 +112,9 @@ export default function App() {
     periode_construction: '',
     annee_exacte: '',
     renovation_recente: false,
+    ventilation_declaree: '',
+    piscine: false,
+    panneaux_solaires: false,
     surface: '',
     type_bien: '',
     localisation: '',
@@ -518,6 +521,37 @@ export default function App() {
             <label>
               DPE connu (optionnel)
               <input name="dpe" value={form.dpe} onChange={handleFormChange} placeholder="ex : D" />
+            </label>
+            <label>
+              Type de ventilation (si connu)
+              <select name="ventilation_declaree" value={form.ventilation_declaree} onChange={handleFormChange}>
+                <option value="">Sélectionner…</option>
+                <option value="VMC simple flux">VMC simple flux</option>
+                <option value="VMC double flux">VMC double flux</option>
+                <option value="Ventilation naturelle">Ventilation naturelle</option>
+                <option value="Je ne sais pas">Je ne sais pas</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="grid">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="piscine"
+                checked={form.piscine}
+                onChange={handleFormChange}
+              />
+              Piscine sur le terrain
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="panneaux_solaires"
+                checked={form.panneaux_solaires}
+                onChange={handleFormChange}
+              />
+              Panneaux solaires installés
             </label>
           </div>
 
