@@ -115,7 +115,7 @@ Infos déclarées sur le bien :
 - Année exacte (si connue) : ${form?.annee_exacte || 'non renseignée'}
 - Rénovation thermique connue (même partielle) : ${form?.renovation_recente ? 'oui' : 'non déclarée'}
 - Surface : ${form?.surface || 'non renseignée'} m²
-- Chauffage déclaré : ${form?.chauffage || 'non renseigné'}
+- Chauffage déclaré : ${form?.chauffage && form.chauffage.length > 0 ? form.chauffage.join(', ') : 'non renseigné'}
 - DPE connu (déclaré manuellement par l'utilisateur) : ${form?.dpe || 'non renseigné'}
 - Type de ventilation déclaré : ${form?.ventilation_declaree || 'non renseigné'}
 - Système(s) de rafraîchissement déclaré(s) : ${form?.systeme_rafraichissement && form.systeme_rafraichissement.length > 0 ? form.systeme_rafraichissement.join(', ') : 'non renseigné'}

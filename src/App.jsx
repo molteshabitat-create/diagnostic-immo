@@ -106,6 +106,8 @@ function ScanDiagram() {
 
 export default function App() {
   const [photoRightsConfirmed, setPhotoRightsConfirmed] = useState(false);
+  const [chauffageOpen, setChauffageOpen] = useState(false);
+  const [rafraichissementOpen, setRafraichissementOpen] = useState(false);
   const [dpeFile, setDpeFile] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [form, setForm] = useState({
@@ -119,7 +121,7 @@ export default function App() {
     surface: '',
     type_bien: '',
     localisation: '',
-    chauffage: '',
+    chauffage: [],
     dpe: '',
     annonce: '',
     nom_agence: '',
@@ -140,26 +142,32 @@ export default function App() {
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
   };
 
-  const toggleRafraichissement = (option) => {
+  const toggleMultiSelect = (field, option, exclusiveOptions = []) => {
     setForm((prev) => {
-      const exclusive = option === 'Aucun' || option === 'Je ne sais pas';
-      let current = prev.systeme_rafraichissement;
+      const exclusive = exclusiveOptions.includes(option);
+      let current = prev[field];
 
       if (current.includes(option)) {
         // On décoche l'option déjà sélectionnée
-        return { ...prev, systeme_rafraichissement: current.filter((o) => o !== option) };
+        return { ...prev, [field]: current.filter((o) => o !== option) };
       }
 
       if (exclusive) {
-        // "Aucun" ou "Je ne sais pas" efface toute autre sélection
-        return { ...prev, systeme_rafraichissement: [option] };
+        // Une option exclusive (ex: "Aucun"/"Je ne sais pas") efface toute autre sélection
+        return { ...prev, [field]: [option] };
       }
 
-      // Sélectionner un vrai système retire "Aucun"/"Je ne sais pas" s'ils étaient cochés
-      current = current.filter((o) => o !== 'Aucun' && o !== 'Je ne sais pas');
-      return { ...prev, systeme_rafraichissement: [...current, option] };
+      // Sélectionner une vraie option retire les options exclusives déjà cochées
+      current = current.filter((o) => !exclusiveOptions.includes(o));
+      return { ...prev, [field]: [...current, option] };
     });
   };
+
+  const toggleRafraichissement = (option) =>
+    toggleMultiSelect('systeme_rafraichissement', option, ['Aucun', 'Je ne sais pas']);
+
+  const toggleChauffage = (option) =>
+    toggleMultiSelect('chauffage', option, ['Je ne sais pas']);
 
   const loadingMessages = [
     "J'analyse vos photos…",
@@ -578,10 +586,6 @@ export default function App() {
               <input name="surface" value={form.surface} onChange={handleFormChange} placeholder="ex : 95" />
             </label>
             <label>
-              Type de chauffage
-              <input name="chauffage" value={form.chauffage} onChange={handleFormChange} placeholder="ex : gaz, PAC" />
-            </label>
-            <label>
               DPE connu (optionnel)
               <input name="dpe" value={form.dpe} onChange={handleFormChange} placeholder="ex : D" />
             </label>
@@ -597,21 +601,61 @@ export default function App() {
             </label>
           </div>
 
-          <label>
-            Système(s) de rafraîchissement (si connu — cochez tout ce qui s'applique)
-            <div className="checkbox-grid">
-              {['Aucun', 'Climatisation réversible / PAC air-air (splits)', 'Puits canadien', 'Géothermie', 'VMC thermodynamique', 'Plancher rafraîchissant', 'Autre', 'Je ne sais pas'].map((option) => (
-                <label key={option} className="checkbox-label checkbox-label-compact">
-                  <input
-                    type="checkbox"
-                    checked={form.systeme_rafraichissement.includes(option)}
-                    onChange={() => toggleRafraichissement(option)}
-                  />
-                  {option}
-                </label>
-              ))}
-            </div>
-          </label>
+          <div className="collapsible">
+            <button
+              type="button"
+              className="collapsible-header"
+              onClick={() => setChauffageOpen(!chauffageOpen)}
+            >
+              <span>Type de chauffage (cochez tout ce qui s'applique)</span>
+              <span className="collapsible-summary">
+                {form.chauffage.length > 0 ? form.chauffage.join(', ') : 'Non renseigné'}
+                <span className={`chevron ${chauffageOpen ? 'chevron-open' : ''}`}>▾</span>
+              </span>
+            </button>
+            {chauffageOpen && (
+              <div className="checkbox-grid">
+                {['Gaz', 'Électrique (radiateurs/convecteurs)', 'PAC air-air', 'PAC air-eau', 'Chaudière fioul', 'Poêle/chaudière bois ou granulés', 'Chauffage collectif/réseau de chaleur', 'Autre', 'Je ne sais pas'].map((option) => (
+                  <label key={option} className="checkbox-label checkbox-label-compact">
+                    <input
+                      type="checkbox"
+                      checked={form.chauffage.includes(option)}
+                      onChange={() => toggleChauffage(option)}
+                    />
+                    {option}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="collapsible">
+            <button
+              type="button"
+              className="collapsible-header"
+              onClick={() => setRafraichissementOpen(!rafraichissementOpen)}
+            >
+              <span>Système(s) de rafraîchissement (si connu)</span>
+              <span className="collapsible-summary">
+                {form.systeme_rafraichissement.length > 0 ? form.systeme_rafraichissement.join(', ') : 'Non renseigné'}
+                <span className={`chevron ${rafraichissementOpen ? 'chevron-open' : ''}`}>▾</span>
+              </span>
+            </button>
+            {rafraichissementOpen && (
+              <div className="checkbox-grid">
+                {['Aucun', 'Climatisation réversible / PAC air-air (splits)', 'Puits canadien', 'Géothermie', 'VMC thermodynamique', 'Plancher rafraîchissant', 'Autre', 'Je ne sais pas'].map((option) => (
+                  <label key={option} className="checkbox-label checkbox-label-compact">
+                    <input
+                      type="checkbox"
+                      checked={form.systeme_rafraichissement.includes(option)}
+                      onChange={() => toggleRafraichissement(option)}
+                    />
+                    {option}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="grid">
             <label className="checkbox-label">

@@ -329,6 +329,45 @@ textarea { resize: vertical; min-height: 80px; }
   .checkbox-grid { grid-template-columns: 1fr; }
 }
 
+.collapsible { margin-bottom: 4px; }
+.collapsible-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 11px 13px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.collapsible-header:hover { border-color: var(--blueprint-dim); }
+.collapsible-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chevron {
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+  color: var(--blueprint);
+}
+.chevron-open { transform: rotate(180deg); }
+.collapsible .checkbox-grid { margin-top: 6px; }
+
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
 
