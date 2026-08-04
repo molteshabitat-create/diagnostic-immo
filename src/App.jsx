@@ -115,6 +115,7 @@ export default function App() {
     ventilation_declaree: '',
     piscine: false,
     panneaux_solaires: false,
+    systeme_rafraichissement: [],
     surface: '',
     type_bien: '',
     localisation: '',
@@ -135,6 +136,27 @@ export default function App() {
   const handleFormChange = (e) => {
     const { name, type, value, checked } = e.target;
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
+  };
+
+  const toggleRafraichissement = (option) => {
+    setForm((prev) => {
+      const exclusive = option === 'Aucun' || option === 'Je ne sais pas';
+      let current = prev.systeme_rafraichissement;
+
+      if (current.includes(option)) {
+        // On décoche l'option déjà sélectionnée
+        return { ...prev, systeme_rafraichissement: current.filter((o) => o !== option) };
+      }
+
+      if (exclusive) {
+        // "Aucun" ou "Je ne sais pas" efface toute autre sélection
+        return { ...prev, systeme_rafraichissement: [option] };
+      }
+
+      // Sélectionner un vrai système retire "Aucun"/"Je ne sais pas" s'ils étaient cochés
+      current = current.filter((o) => o !== 'Aucun' && o !== 'Je ne sais pas');
+      return { ...prev, systeme_rafraichissement: [...current, option] };
+    });
   };
 
   const loadingMessages = [
@@ -166,6 +188,11 @@ export default function App() {
 
     if (!photoRightsConfirmed) {
       setError('Merci de confirmer que tu es autorisé à utiliser ces photos avant de lancer le diagnostic.');
+      return;
+    }
+
+    if (dpeFile && photos.length > 6) {
+      setError('Avec un DPE joint, limite-toi à 6 photos maximum pour l\'instant (limite du plan gratuit). Réduis le nombre de photos ou retire le DPE.');
       return;
     }
 
@@ -402,7 +429,7 @@ export default function App() {
         <form onSubmit={handleSubmit} className="form">
           <label>
             Photos du bien (max 10)
-            <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques)</span>
+            <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques). Si vous joignez aussi un DPE, limitez-vous à 6 photos max.</span>
             <input
               type="file"
               accept="image/*"
@@ -533,6 +560,22 @@ export default function App() {
               </select>
             </label>
           </div>
+
+          <label>
+            Système(s) de rafraîchissement (si connu — cochez tout ce qui s'applique)
+            <div className="checkbox-grid">
+              {['Aucun', 'PAC air-air (réversible)', 'Climatisation split', 'Puits canadien', 'Géothermie', 'VMC thermodynamique', 'Plancher rafraîchissant', 'Autre', 'Je ne sais pas'].map((option) => (
+                <label key={option} className="checkbox-label checkbox-label-compact">
+                  <input
+                    type="checkbox"
+                    checked={form.systeme_rafraichissement.includes(option)}
+                    onChange={() => toggleRafraichissement(option)}
+                  />
+                  {option}
+                </label>
+              ))}
+            </div>
+          </label>
 
           <div className="grid">
             <label className="checkbox-label">
