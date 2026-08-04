@@ -88,7 +88,18 @@ body {
   line-height: 1.6;
   color: var(--ink-dim);
   max-width: 520px;
+  margin: 0 0 16px;
+}
+.hero p.lead-punch {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--blueprint);
+  max-width: 520px;
   margin: 0 0 28px;
+  border-left: 3px solid var(--heat);
+  padding-left: 14px;
 }
 
 /* ---- Signature: scan diagram ---- */

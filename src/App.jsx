@@ -426,6 +426,10 @@ export default function App() {
           Avant chaque visite, un diagnostic technique complet généré à partir de photos et du
           texte de l'annonce — isolation, chauffage, points de vigilance, budget travaux chiffré
           et arguments de négociation prêts à l'emploi. Ce qu'un œil d'expert verrait, en 30 secondes.
+          Repassez aussi vos anciennes annonces au crible pour débloquer ou améliorer vos chances de vente.
+        </p>
+        <p className="lead-punch">
+          Transformez le doute de l'acheteur en confiance, et l'aveuglement du vendeur en réalisme.
         </p>
         <ScanDiagram />
       </section>
