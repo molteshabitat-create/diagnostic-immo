@@ -191,12 +191,14 @@ export default function App() {
     setError(null);
     setResult(null);
 
-    if (photos.length === 0) {
-      setError('Ajoute au moins une photo du bien pour lancer le diagnostic.');
+    const hasAnnonce = form.annonce && form.annonce.trim().length > 0;
+
+    if (photos.length === 0 && !dpeFile && !hasAnnonce) {
+      setError('Ajoute au moins des photos, un DPE, ou le texte de l\'annonce pour lancer le diagnostic.');
       return;
     }
 
-    if (!photoRightsConfirmed) {
+    if (photos.length > 0 && !photoRightsConfirmed) {
       setError('Merci de confirmer que tu es autorisé à utiliser ces photos avant de lancer le diagnostic.');
       return;
     }
@@ -476,7 +478,7 @@ export default function App() {
           </div>
 
           <label>
-            Photos du bien (max 10)
+            Photos du bien (optionnel, max 10)
             <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques). Si vous joignez aussi un DPE, limitez-vous à 6 photos max.</span>
             <input
               type="file"

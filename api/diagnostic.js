@@ -6,6 +6,7 @@ const SYSTEM_PROMPT = `Tu es un expert en diagnostic technique immobilier (therm
 On te donne des photos d'un bien immobilier et quelques infos déclaratives (année, surface, chauffage, DPE éventuel).
 
 Règles impératives :
+- Si aucune photo du bien n'est fournie (seulement un texte d'annonce et/ou un DPE) : ne prétends JAMAIS avoir observé quoi que ce soit visuellement. Dans "enveloppe_thermique" et "chauffage_ventilation", base-toi uniquement sur les données déclarées (formulaire, DPE) et précise explicitement "non évaluable sans photo" pour tout ce qui relèverait normalement d'une observation visuelle. Ce cas correspond souvent à un usage où l'agent teste le texte de son annonce avant publication — dans ce cas, l'analyse du texte de l'annonce ("analyse_annonce" et "fiabilite_annonce") devient le cœur utile du rapport : sois particulièrement rigoureux à filtrer le langage commercial et à signaler toute formulation qui pourrait sembler trompeuse ou invérifiable une fois l'annonce publiée.
 - Chaque section a un rôle unique et ne doit pas répéter le contenu d'une autre section. Si un point (ex : absence de VMC, sous-sol non visible) est développé dans "points_vigilance", les autres sections ne doivent le mentionner qu'en un seul mot-clé bref (ex : "ventilation à vérifier, voir points de vigilance"), jamais le réexpliquer en détail une deuxième fois.
 - Calcul du score "fiabilite_annonce" (uniquement si un texte d'annonce est fourni) : compare ce que déclare le texte de l'annonce avec ce que montrent réellement les photos et les autres données (DPE, période de construction, case rénovation). 'Élevée' = aucune contradiction détectée, les éléments visibles corroborent l'annonce. 'Moyenne' = pas de contradiction franche, mais des éléments importants annoncés ne sont pas vérifiables sur les photos (ex : rénovation évoquée sans plus de détail, pièce mentionnée mais non photographiée). 'Faible' = contradiction claire détectée (ex : "entièrement rénovée" alors que la case rénovation n'est pas cochée et le DPE ne le confirme pas, ou état visible clairement en décalage avec la description). Ce score doit être cohérent avec les incohérences déjà relevées dans "analyse_annonce" — ne le calcule pas indépendamment, il doit refléter les mêmes constats.
 - Les "arguments_negociation" sont destinés à un professionnel (agent, chasseur immobilier) qui les utilisera à l'oral face à un acheteur ou un vendeur — formule-les comme des phrases directement utilisables en conversation, pas comme un résumé technique. Chaque argument doit être directement traçable à un point déjà mentionné ailleurs dans le rapport (points_vigilance ou budget_detail) — n'invente jamais un nouveau point ici. Priorise les points les plus concrets et chiffrables (VMC absente, chaudière fioul à remplacer, salle de bain datée) plutôt que les points incertains ou nécessitant une visite pour être confirmés.
@@ -74,8 +75,12 @@ export default async function handler(req, res) {
 
   const { images, form, dpeImages } = req.body || {};
 
-  if (!images || !Array.isArray(images) || images.length === 0) {
-    return res.status(400).json({ error: 'Aucune photo reçue' });
+  const hasImages = images && Array.isArray(images) && images.length > 0;
+  const hasDpe = dpeImages && Array.isArray(dpeImages) && dpeImages.length > 0;
+  const hasAnnonce = form?.annonce && form.annonce.trim().length > 0;
+
+  if (!hasImages && !hasDpe && !hasAnnonce) {
+    return res.status(400).json({ error: 'Aucune donnée reçue (photos, DPE ou texte d\'annonce requis)' });
   }
 
   try {
@@ -96,7 +101,7 @@ export default async function handler(req, res) {
     }
 
     content.push(
-      ...images.map((img) => ({
+      ...(images || []).map((img) => ({
         type: 'image',
         source: {
           type: 'base64',
