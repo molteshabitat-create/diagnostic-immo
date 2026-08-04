@@ -43,7 +43,7 @@ function compressImage(file, maxWidth = 1600, quality = 0.85) {
 
 // Convertit les premières pages d'un PDF en images JPEG compressées, directement dans le navigateur.
 // Évite d'envoyer un PDF lourd (souvent 3-6 Mo) : on ne garde que les pages utiles, en léger.
-async function pdfToCompressedImages(file, maxPages = 3) {
+async function pdfToCompressedImages(file, maxPages = 2) {
   if (!window.pdfjsLib) {
     throw new Error('La librairie de lecture PDF n\'a pas pu charger. Réessaie dans quelques secondes.');
   }
@@ -443,7 +443,7 @@ export default function App() {
 
           <label>
             DPE officiel (PDF ou photo, optionnel)
-            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul. Les PDF sont automatiquement allégés (3 premières pages).</span>
+            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul. Les PDF sont automatiquement allégés (2 premières pages).</span>
             <input
               type="file"
               accept="application/pdf,image/*"
