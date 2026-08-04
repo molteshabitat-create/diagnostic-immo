@@ -44,6 +44,9 @@ function compressImage(file, maxWidth = 1600, quality = 0.85) {
 // Convertit les premières pages d'un PDF en images JPEG compressées, directement dans le navigateur.
 // Évite d'envoyer un PDF lourd (souvent 3-6 Mo) : on ne garde que les pages utiles, en léger.
 async function pdfToCompressedImages(file, maxPages = 3) {
+  if (!window.pdfjsLib) {
+    throw new Error('La librairie de lecture PDF n\'a pas pu charger. Réessaie dans quelques secondes.');
+  }
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const pageCount = Math.min(pdf.numPages, maxPages);
