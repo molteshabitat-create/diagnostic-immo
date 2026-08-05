@@ -603,15 +603,6 @@ export default function App() {
               Année exacte (si connue)
               <input name="annee_exacte" value={form.annee_exacte} onChange={handleFormChange} placeholder="ex : 1985" />
             </label>
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="renovation_recente"
-                checked={form.renovation_recente}
-                onChange={handleFormChange}
-              />
-              Rénovation thermique connue (même partielle)
-            </label>
             <label>
               Surface (m²)
               <input name="surface" value={form.surface} onChange={handleFormChange} placeholder="ex : 95" />
@@ -702,6 +693,15 @@ export default function App() {
           </div>
 
           <div className="grid">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="renovation_recente"
+                checked={form.renovation_recente}
+                onChange={handleFormChange}
+              />
+              Rénovation thermique connue (même partielle)
+            </label>
             <label className="checkbox-label">
               <input
                 type="checkbox"
