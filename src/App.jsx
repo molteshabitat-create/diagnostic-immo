@@ -613,7 +613,9 @@ export default function App() {
                 <option value="Ballon électrique (cumulus)">Ballon électrique (cumulus)</option>
                 <option value="Chauffe-eau thermodynamique">Chauffe-eau thermodynamique</option>
                 <option value="Chauffe-eau solaire">Chauffe-eau solaire</option>
-                <option value="Couplée à la chaudière/PAC">Couplée à la chaudière/PAC</option>
+                <option value="Couplée à une chaudière gaz">Couplée à une chaudière gaz</option>
+                <option value="Couplée à une chaudière fioul">Couplée à une chaudière fioul</option>
+                <option value="Couplée à une PAC">Couplée à une PAC</option>
                 <option value="Je ne sais pas">Je ne sais pas</option>
               </select>
             </label>
