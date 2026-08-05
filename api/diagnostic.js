@@ -142,7 +142,7 @@ Analyse les photos, le document DPE si fourni, et le texte de l'annonce si fourn
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 6000,
+        max_tokens: 7000,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content }]
       })
