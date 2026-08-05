@@ -134,8 +134,22 @@ export default function App() {
   const [error, setError] = useState(null);
 
   const handlePhotoChange = (e) => {
-    const files = Array.from(e.target.files).slice(0, 10);
+    const maxPhotos = dpeFile ? 6 : 10;
+    const files = Array.from(e.target.files).slice(0, maxPhotos);
     setPhotos(files);
+  };
+
+  const removePhoto = (index) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDpeFileChange = (e) => {
+    const file = e.target.files[0] || null;
+    setDpeFile(file);
+    // Si un DPE est ajouté et qu'il y a déjà plus de 6 photos, on retaille automatiquement
+    if (file && photos.length > 6) {
+      setPhotos((prev) => prev.slice(0, 6));
+    }
   };
 
   const handleFormChange = (e) => {
@@ -480,7 +494,7 @@ export default function App() {
 
           <label>
             Photos du bien (optionnel, max 10)
-            <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques). Si vous joignez aussi un DPE, limitez-vous à 6 photos max.</span>
+            <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques). La limite passe automatiquement à 6 si vous joignez un DPE.</span>
             <input
               type="file"
               accept="image/*"
@@ -500,11 +514,21 @@ export default function App() {
               </span>
             </div>
             {photos.length > 0 && (
-              <ul className="file-list">
+              <div className="thumb-grid">
                 {photos.map((f, i) => (
-                  <li key={i}>{f.name}</li>
+                  <div key={i} className="thumb-item">
+                    <img src={URL.createObjectURL(f)} alt={f.name} />
+                    <button
+                      type="button"
+                      className="thumb-remove"
+                      onClick={() => removePhoto(i)}
+                      aria-label={`Retirer ${f.name}`}
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </label>
 
@@ -525,7 +549,7 @@ export default function App() {
             <input
               type="file"
               accept="application/pdf,image/*"
-              onChange={(e) => setDpeFile(e.target.files[0] || null)}
+              onChange={handleDpeFileChange}
               id="dpe-input"
               className="file-input-hidden"
             />
