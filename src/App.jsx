@@ -462,7 +462,7 @@ export default function App() {
         </div>
       </div>
 
-      <h2 className="section-title">Lancer un diagnostic</h2>
+      <h2 className="section-title">Préparer le bien</h2>
       <div className="form-card">
         <form onSubmit={handleSubmit} className="form">
           <div className="grid">
@@ -699,7 +699,7 @@ export default function App() {
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Analyse en cours…' : 'Lancer le diagnostic'}
+            {loading ? 'Analyse en cours…' : 'Obtenir mes réponses'}
           </button>
 
           {loading && (
