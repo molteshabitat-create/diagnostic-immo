@@ -118,6 +118,7 @@ export default function App() {
     piscine: false,
     panneaux_solaires: false,
     systeme_rafraichissement: [],
+    production_eau_chaude: '',
     surface: '',
     type_bien: '',
     localisation: '',
@@ -602,6 +603,17 @@ export default function App() {
                 <option value="VMC simple flux">VMC simple flux</option>
                 <option value="VMC double flux">VMC double flux</option>
                 <option value="Ventilation naturelle">Ventilation naturelle</option>
+                <option value="Je ne sais pas">Je ne sais pas</option>
+              </select>
+            </label>
+            <label>
+              Production d'eau chaude (si connue)
+              <select name="production_eau_chaude" value={form.production_eau_chaude} onChange={handleFormChange}>
+                <option value="">Sélectionner…</option>
+                <option value="Ballon électrique (cumulus)">Ballon électrique (cumulus)</option>
+                <option value="Chauffe-eau thermodynamique">Chauffe-eau thermodynamique</option>
+                <option value="Chauffe-eau solaire">Chauffe-eau solaire</option>
+                <option value="Couplée à la chaudière/PAC">Couplée à la chaudière/PAC</option>
                 <option value="Je ne sais pas">Je ne sais pas</option>
               </select>
             </label>
