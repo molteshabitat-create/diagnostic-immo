@@ -24,7 +24,11 @@ Règles impératives :
 - Le budget de rénovation doit être une fourchette large et réaliste, jamais un chiffre unique et précis.
 - Si une information est invisible ou non déductible des photos, dis-le clairement plutôt que d'inventer.
 - Concernant le DPE : sa méthode de calcul a changé le 1er juillet 2021 (passage à la méthode "3CL", remplaçant l'ancienne méthode basée sur les factures d'énergie, jugée trop imprécise). Si le texte de l'annonce mentionne une date d'établissement du DPE (explicite, ou déductible d'une date de publication de l'annonce proche), utilise-la. Un DPE établi avant le 1er juillet 2021 est non seulement moins fiable, il est légalement invalide depuis le 1er janvier 2025 — signale-le explicitement si tu identifies cette situation, et précise qu'un nouveau DPE sera nécessaire. À l'automne 2021, un ajustement de calcul a temporairement pénalisé excessivement certains bâtiments anciens, corrigé fin 2021 — mentionne cette incertitude si la date se situe entre juillet et décembre 2021. Si aucune date n'est identifiable, précise simplement que la fiabilité du DPE déclaré ne peut pas être évaluée sans connaître sa date d'émission — ne l'invente jamais. Pour juger si une date est passée, future, ou cohérente, utilise systématiquement la "Date du jour" fournie en début de message comme référence — ne suppose jamais la date actuelle par toi-même.
-- Si des pages d'un document DPE officiel (converties en images, ou une photo directe) sont fournies en premier dans les images : extrais-en directement la classe énergétique (lettre), la date d'émission, la consommation en kWh/m²/an, l'estimation GES si présente, et surtout la section "recommandations de travaux" du diagnostiqueur si elle est visible — ces recommandations professionnelles chiffrées sont une source bien plus fiable que ta propre estimation visuelle, utilise-les en priorité pour calibrer "budget_estime" et "budget_detail". Si les données du document DPE contredisent le champ "DPE connu" déclaré manuellement par l'utilisateur, utilise celles du document (plus fiable) et signale l'écart brièvement dans "score_transparence". Si les pages fournies ne semblent pas être un DPE ou ne sont pas lisibles, dis-le clairement plutôt que d'inventer des données. Attention à ne pas confondre ces pages de document avec les photos du bien lui-même qui suivent — elles sont clairement identifiées comme telles dans le message.
+- Si le texte ou des pages d'un document DPE officiel sont fournis (texte extrait directement du PDF, ou images en repli) : extrais-en directement la classe énergétique (lettre), la date d'émission, la consommation en kWh/m²/an, l'estimation GES si présente. Cherche ACTIVEMENT une section "Travaux essentiels" et/ou "Travaux à envisager" avec un "Montant estimé" chiffré par le diagnostiqueur — mais attention, cette recommandation est générée AUTOMATIQUEMENT par le logiciel de calcul (le DPE le précise généralement lui-même en petits caractères), ce n'est PAS un défaut constaté ni une obligation, juste une piste d'amélioration théorique vers un logement encore plus performant. Traite-la impérativement ainsi :
+  1. Si le DPE actuel est déjà bon (A, B ou C), indique-le clairement en premier (ex : "DPE B déjà très correct") et ne présente le montant chiffré des "travaux à envisager" que comme une amélioration future optionnelle, jamais comme un besoin urgent — ajoute systématiquement une mention explicite type "(amélioration facultative, non obligatoire, le logement est déjà performant)" à côté du montant dans "budget_postes" ou "budget_detail". Ne l'inclus JAMAIS dans "arguments_negociation" ni "points_vigilance" dans ce cas, car ce n'est pas un défaut à faire valoir.
+  2. Ne présente pas un remplacement de système (ex : chaudière gaz à condensation performante vers PAC air/eau) comme un progrès écologique évident ou automatique — la performance environnementale réelle dépend du contexte (mix électrique, âge et état du système actuel) et un système gaz à condensation récent et bien entretenu reste déjà correct. Reste neutre : "le logiciel du DPE suggère un passage à une PAC, à considérer sur le long terme, sans que le système actuel soit problématique."
+  3. Si "Etape non nécessaire, performance déjà atteinte" est indiqué pour un lot de travaux, ne l'inclus nulle part, ni comme point positif ni négatif.
+  Si les données du document DPE contredisent le champ "DPE connu" déclaré manuellement par l'utilisateur, utilise celles du document (plus fiable) et signale l'écart brièvement dans "score_transparence". Si le texte/les pages fournis ne semblent pas être un DPE ou ne sont pas exploitables, dis-le clairement plutôt que d'inventer des données. Attention à ne pas confondre ce contenu DPE avec les photos du bien lui-même qui suivent — ils sont clairement identifiés comme distincts dans le message.
 - Si la page du DPE contenant le "Schéma des déperditions de chaleur" (répartition en % par poste : toiture, murs, portes/fenêtres, ventilation, ponts thermiques, plancher bas) est fournie, utilise ces pourcentages officiels pour désigner précisément le poste le plus déperditif dans "enveloppe_thermique" (ex : "Le DPE identifie les fenêtres/portes comme premier poste de déperdition à 27%") — c'est une donnée exacte qui doit remplacer toute supposition générale sur "les murs" ou "la toiture" par défaut.
 - Si la page du DPE indique une note "Performance de l'isolation" (Insuffisante / Moyenne / Bonne / Très bonne), utilise cette note officielle directement et affirmativement dans "enveloppe_thermique" plutôt que ta propre estimation visuelle, qui devient alors secondaire.
 - Si la page du DPE indique une note "Confort d'été (hors climatisation)" (Insuffisant / Moyen / Bon), c'est la donnée de référence à utiliser dans "score_transparence" à la place de ta propre déduction. Combine-la avec la présence ou non d'un système de climatisation/PAC réversible déjà identifié : si la note DPE est "Insuffisant" ou "Moyen" MAIS qu'une PAC réversible est présente sur le bien, précise que le système de climatisation existant compense cette limite structurelle. Si la note DPE est "Bon", le bien n'a pas besoin de climatisation pour un confort d'été correct.
@@ -82,10 +86,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
-  const { images, form, dpeImages } = req.body || {};
+  const { images, form, dpeImages, dpeText } = req.body || {};
 
   const hasImages = images && Array.isArray(images) && images.length > 0;
-  const hasDpe = dpeImages && Array.isArray(dpeImages) && dpeImages.length > 0;
+  const hasDpeImages = dpeImages && Array.isArray(dpeImages) && dpeImages.length > 0;
+  const hasDpeText = dpeText && typeof dpeText === 'string' && dpeText.trim().length > 0;
+  const hasDpe = hasDpeImages || hasDpeText;
   const hasAnnonce = form?.annonce && form.annonce.trim().length > 0;
 
   if (!hasImages && !hasDpe && !hasAnnonce) {
@@ -93,10 +99,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    // On construit le contenu multimodal : pages du DPE (si fourni) + images du bien + texte
+    // On construit le contenu multimodal : texte du DPE (prioritaire, plus léger et fiable)
+    // ou pages du DPE en images (repli si PDF scanné sans texte) + images du bien + texte
     const content = [];
 
-    if (dpeImages && Array.isArray(dpeImages) && dpeImages.length > 0) {
+    if (hasDpeText) {
+      content.push({
+        type: 'text',
+        text: `--- DÉBUT DU TEXTE EXTRAIT DU DOCUMENT DPE OFFICIEL FOURNI PAR L'UTILISATEUR ---\n${dpeText}\n--- FIN DU TEXTE DU DOCUMENT DPE ---`
+      });
+    } else if (hasDpeImages) {
       dpeImages.forEach((img) => {
         content.push({
           type: 'image',
@@ -136,7 +148,7 @@ Infos déclarées sur le bien :
 - Système(s) de rafraîchissement déclaré(s) : ${form?.systeme_rafraichissement && form.systeme_rafraichissement.length > 0 ? form.systeme_rafraichissement.join(', ') : 'non renseigné'}
 - Piscine sur le terrain : ${form?.piscine ? 'oui' : 'non déclarée'}
 - Panneaux solaires installés : ${form?.panneaux_solaires ? 'oui' : 'non déclarés'}
-${dpeImages && dpeImages.length > 0 ? "\nLes premières images fournies (avant les photos du bien) sont issues d'un document DPE officiel (PDF converti en images ou photo) : utilise les données qu'elles contiennent en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessus, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur :\n"""${form.annonce}"""\n` : ''}
+${hasDpeText ? "\nLe texte du document DPE officiel a été fourni intégralement ci-dessus : utilise les données qu'il contient en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : hasDpeImages ? "\nLes premières images fournies (avant les photos du bien) sont issues d'un document DPE officiel (PDF converti en images ou photo) : utilise les données qu'elles contiennent en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur :\n"""${form.annonce}"""\n` : ''}
 Analyse les photos, le document DPE si fourni, et le texte de l'annonce si fourni (en gardant un œil critique : les annonces enjolivent parfois la réalité) et fournis le diagnostic au format JSON demandé.`
       }
     );
