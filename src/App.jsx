@@ -74,6 +74,40 @@ async function pdfToCompressedImages(file, maxPages = 2) {
   return images;
 }
 
+// Extrait le texte brut du PDF (bien plus léger et fiable que des images pour les chiffres).
+// On lit jusqu'à `maxPages` pages, mais on s'arrête si on croise la section "Etat des risques"
+// (souvent accolée au DPE dans le même document) pour ne garder que la partie utile.
+// Limite aussi la longueur totale pour contrôler le coût sur les très gros dossiers.
+async function extractPdfText(file, maxPages = 10, maxChars = 9000) {
+  if (!window.pdfjsLib) {
+    throw new Error('La librairie de lecture PDF n\'a pas pu charger. Réessaie dans quelques secondes.');
+  }
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pageCount = Math.min(pdf.numPages, maxPages);
+  let fullText = '';
+
+  for (let i = 1; i <= pageCount; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map((item) => item.str).join(' ');
+
+    // On arrête si on entre dans les annexes administratives (état des risques, etc.)
+    // qui ne sont pas utiles pour le diagnostic thermique et gonflent inutilement le texte.
+    if (/etat des risques|installations classées|nuisances sonores/i.test(pageText) && fullText.length > 500) {
+      break;
+    }
+
+    fullText += `\n--- Page ${i} ---\n${pageText}`;
+    if (fullText.length > maxChars) {
+      fullText = fullText.slice(0, maxChars);
+      break;
+    }
+  }
+
+  return fullText.trim();
+}
+
 function reliabilityClass(value) {
   if (value === 'Élevée') return 'high';
   if (value === 'Moyenne') return 'medium';
@@ -218,11 +252,6 @@ export default function App() {
       return;
     }
 
-    if (dpeFile && photos.length > 6) {
-      setError('Avec un DPE joint, limite-toi à 6 photos maximum pour l\'instant (limite du plan gratuit). Réduis le nombre de photos ou retire le DPE.');
-      return;
-    }
-
     setLoading(true);
     try {
       const images = await Promise.all(
@@ -233,17 +262,26 @@ export default function App() {
       );
 
       let dpeImages = [];
+      let dpeText = '';
       if (dpeFile) {
         const isPdf = dpeFile.type === 'application/pdf';
-        dpeImages = isPdf
-          ? await pdfToCompressedImages(dpeFile)
-          : [{ media_type: 'image/jpeg', data: await compressImage(dpeFile) }];
+        if (isPdf) {
+          dpeText = await extractPdfText(dpeFile);
+          // Si le PDF est un scan sans couche de texte (texte quasi vide extrait),
+          // on bascule sur la conversion en images pour ne rien perdre.
+          if (dpeText.length < 200) {
+            dpeImages = await pdfToCompressedImages(dpeFile, 2);
+            dpeText = '';
+          }
+        } else {
+          dpeImages = [{ media_type: 'image/jpeg', data: await compressImage(dpeFile) }];
+        }
       }
 
       const res = await fetch('/api/diagnostic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images, form, dpeImages })
+        body: JSON.stringify({ images, form, dpeImages, dpeText })
       });
 
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
@@ -494,7 +532,7 @@ export default function App() {
 
           <label>
             Photos du bien (optionnel, max 10)
-            <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques). La limite passe automatiquement à 6 si vous joignez un DPE.</span>
+            <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques).</span>
             <input
               type="file"
               accept="image/*"
@@ -545,7 +583,7 @@ export default function App() {
 
           <label>
             DPE officiel (PDF ou photo, optionnel)
-            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul. Les PDF sont automatiquement allégés (2 premières pages).</span>
+            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul (texte lu directement, jusqu'à 10 pages).</span>
             <input
               type="file"
               accept="application/pdf,image/*"
