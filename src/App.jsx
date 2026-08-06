@@ -220,19 +220,37 @@ export default function App() {
 
   const loadingMessages = [
     "J'analyse vos photos…",
-    "Calcul de l'isolation et du chauffage en cours…",
-    "Je rédige votre rapport…"
+    "Je lis les données du DPE…",
+    "Calcul de l'isolation et du chauffage…",
+    "Je croise les informations de l'annonce…",
+    "Je vérifie la cohérence des chiffres…",
+    "Je prépare le budget travaux…",
+    "Je rédige les arguments de négociation…",
+    "Je prépare les réponses aux questions…",
+    "Finalisation du rapport…"
   ];
+
+  const [loadingElapsed, setLoadingElapsed] = useState(0);
 
   useEffect(() => {
     if (!loading) {
       setLoadingStep(0);
+      setLoadingElapsed(0);
       return;
     }
-    const interval = setInterval(() => {
-      setLoadingStep((prev) => (prev < loadingMessages.length - 1 ? prev + 1 : prev));
-    }, 3500);
-    return () => clearInterval(interval);
+    const stepInterval = setInterval(() => {
+      // On boucle en continu plutôt que de se figer sur le dernier message :
+      // une génération avec DPE + beaucoup de photos peut prendre jusqu'à 60s,
+      // et un message figé donne l'impression que ça a planté.
+      setLoadingStep((prev) => (prev + 1) % loadingMessages.length);
+    }, 4000);
+    const tickInterval = setInterval(() => {
+      setLoadingElapsed((prev) => prev + 1);
+    }, 1000);
+    return () => {
+      clearInterval(stepInterval);
+      clearInterval(tickInterval);
+    };
   }, [loading]);
 
   const handleSubmit = async (e) => {
@@ -770,7 +788,7 @@ export default function App() {
               <div className="progress-track">
                 <div
                   className="progress-fill"
-                  style={{ width: `${((loadingStep + 1) / loadingMessages.length) * 90}%` }}
+                  style={{ width: `${Math.min(90, (loadingElapsed / 60) * 90)}%` }}
                 />
               </div>
             </div>
