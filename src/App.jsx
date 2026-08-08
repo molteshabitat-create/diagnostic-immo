@@ -328,8 +328,9 @@ export default function App() {
     }
   };
 
-  const downloadPdf = () => {
+  const downloadPdf = (mode = 'agent') => {
     if (!result) return;
+    const includeNegotiation = mode === 'agent';
     const doc = new jsPDF();
     const marginX = 15;
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -446,14 +447,14 @@ export default function App() {
       'Budget rénovation estimé',
       `${result.budget_estime || ''}\n${result.budget_detail || ''}${budgetPostesText}`
     );
-    if (result.arguments_negociation && result.arguments_negociation.length > 0) {
+    if (includeNegotiation && result.arguments_negociation && result.arguments_negociation.length > 0) {
       addSection(
         'Arguments de négociation',
         result.arguments_negociation.map((a) => `• ${a}`).join('\n'),
         { boxColor: [239, 246, 241], titleColor: [47, 107, 79] }
       );
     }
-    if (result.questions_reponses && result.questions_reponses.length > 0) {
+    if (includeNegotiation && result.questions_reponses && result.questions_reponses.length > 0) {
       const qaText = result.questions_reponses
         .map((qa) => `Q: ${qa.question}\nR: ${qa.reponse}`)
         .join('\n\n');
@@ -480,7 +481,7 @@ export default function App() {
     doc.text(disclaimerLines, marginX, y);
 
     drawFooter();
-    doc.save('diagnostic-bien.pdf');
+    doc.save(includeNegotiation ? 'diagnostic-bien-agent.pdf' : 'diagnostic-bien-acheteur.pdf');
   };
 
   return (
@@ -876,7 +877,18 @@ export default function App() {
             <p>{result.score_transparence}</p>
           </div>
 
-          <button onClick={downloadPdf} className="secondary">Télécharger le PDF</button>
+          <div className="pdf-buttons">
+            <button onClick={() => downloadPdf('agent')} className="secondary">
+              📋 Version complète (usage interne)
+            </button>
+            <button onClick={() => downloadPdf('acheteur')} className="secondary secondary-alt">
+              📄 Version à partager (sans négociation)
+            </button>
+          </div>
+          <p className="pdf-hint">
+            La version complète inclut vos arguments de négociation et les réponses préparées —
+            gardez-la pour vous. Utilisez la version "à partager" pour l'acheteur ou le vendeur.
+          </p>
 
           <p className="disclaimer">
             <strong>Simulation non contractuelle.</strong> Ce document est généré par intelligence
