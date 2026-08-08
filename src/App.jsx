@@ -673,11 +673,13 @@ export default function App() {
               <input name="annee_exacte" value={form.annee_exacte} onChange={handleFormChange} placeholder="ex : 1985" />
             </label>
             <label>
-              Surface (m²)
+              Surface (m², optionnel)
+              <span className="hint">Extraite automatiquement si vous joignez un DPE</span>
               <input name="surface" value={form.surface} onChange={handleFormChange} placeholder="ex : 95" />
             </label>
             <label>
               DPE connu (optionnel)
+              <span className="hint">Extrait automatiquement si vous joignez un DPE</span>
               <input name="dpe" value={form.dpe} onChange={handleFormChange} placeholder="ex : D" />
             </label>
             <label>
