@@ -512,6 +512,27 @@ button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+.verdict-global {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+  background: var(--paper);
+  border-left: 3px solid var(--blueprint);
+  padding: 12px 16px;
+  margin-bottom: 22px;
+  border-radius: 4px;
+}
+.section.cout-annuel { background: #EFF6F1; padding: 14px 16px; border-radius: 7px; }
+.section.cout-annuel h3 { color: var(--ok); }
+.section.cout-annuel .value { color: var(--ok); }
+.cout-annuel-note {
+  font-size: 12.5px !important;
+  color: var(--ink-dim) !important;
+  font-style: italic;
+  margin-top: 4px !important;
+}
 .section { margin-bottom: 20px; }
 .section h3 {
   font-family: var(--font-mono);

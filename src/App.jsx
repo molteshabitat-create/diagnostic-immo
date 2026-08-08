@@ -424,6 +424,10 @@ export default function App() {
       y += bodyHeight + 9;
     };
 
+    if (result.verdict_global) {
+      addSection('En bref', result.verdict_global, { boxColor: [228, 235, 242], titleColor: BLUEPRINT });
+    }
+
     if (result.analyse_annonce) {
       const fiabiliteLine = result.fiabilite_annonce
         ? `Fiabilité de l'annonce : ${result.fiabilite_annonce}${result.fiabilite_annonce_detail ? ' — ' + result.fiabilite_annonce_detail : ''}\n\n`
@@ -448,6 +452,13 @@ export default function App() {
       'Budget rénovation estimé',
       `${result.budget_estime || ''}\n${result.budget_detail || ''}${budgetPostesText}`
     );
+    if (result.cout_fonctionnement_annuel) {
+      addSection(
+        'Coût de fonctionnement annuel estimé',
+        `${result.cout_fonctionnement_annuel}\nChauffage, eau chaude et entretien courant des systèmes cumulés.`,
+        { boxColor: [239, 246, 241], titleColor: [47, 107, 79] }
+      );
+    }
     if (includeNegotiation && result.arguments_negociation && result.arguments_negociation.length > 0) {
       addSection(
         'Arguments de négociation',
@@ -807,6 +818,12 @@ export default function App() {
             <span className="tag">Généré par IA</span>
           </div>
 
+          {result.verdict_global && (
+            <div className="verdict-global">
+              {result.verdict_global}
+            </div>
+          )}
+
           {result.analyse_annonce && (
             <div className="section annonce">
               <h3>Analyse du texte de l'annonce</h3>
@@ -852,6 +869,13 @@ export default function App() {
               </table>
             )}
           </div>
+          {result.cout_fonctionnement_annuel && (
+            <div className="section cout-annuel">
+              <h3>Coût de fonctionnement annuel estimé</h3>
+              <span className="value">{result.cout_fonctionnement_annuel}</span>
+              <p className="cout-annuel-note">Chauffage, eau chaude et entretien courant des systèmes cumulés.</p>
+            </div>
+          )}
           {((result.arguments_negociation && result.arguments_negociation.length > 0) ||
             (result.questions_reponses && result.questions_reponses.length > 0)) && (
             <div className="agent-zone">
