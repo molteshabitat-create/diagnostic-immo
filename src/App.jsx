@@ -141,6 +141,7 @@ function ScanDiagram() {
 export default function App() {
   const [photoRightsConfirmed, setPhotoRightsConfirmed] = useState(false);
   const [chauffageOpen, setChauffageOpen] = useState(false);
+  const [agentZoneOpen, setAgentZoneOpen] = useState(false);
   const [rafraichissementOpen, setRafraichissementOpen] = useState(false);
   const [dpeFile, setDpeFile] = useState(null);
   const [photos, setPhotos] = useState([]);
@@ -851,25 +852,42 @@ export default function App() {
               </table>
             )}
           </div>
-          {result.arguments_negociation && result.arguments_negociation.length > 0 && (
-            <div className="section negociation">
-              <h3>Arguments de négociation</h3>
-              <ul>
-                {result.arguments_negociation.map((arg, i) => (
-                  <li key={i}>{arg}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {result.questions_reponses && result.questions_reponses.length > 0 && (
-            <div className="section qa">
-              <h3>Questions probables de l'acheteur — réponses prêtes</h3>
-              {result.questions_reponses.map((qa, i) => (
-                <div key={i} className="qa-item">
-                  <p className="qa-question">« {qa.question} »</p>
-                  <p className="qa-reponse">{qa.reponse}</p>
+          {((result.arguments_negociation && result.arguments_negociation.length > 0) ||
+            (result.questions_reponses && result.questions_reponses.length > 0)) && (
+            <div className="agent-zone">
+              <button
+                type="button"
+                className="agent-zone-header"
+                onClick={() => setAgentZoneOpen(!agentZoneOpen)}
+              >
+                <span>🔒 Zone agent — ne pas montrer à l'acheteur</span>
+                <span className={`chevron ${agentZoneOpen ? 'chevron-open' : ''}`}>▾</span>
+              </button>
+              {agentZoneOpen && (
+                <div className="agent-zone-content">
+                  {result.arguments_negociation && result.arguments_negociation.length > 0 && (
+                    <div className="section negociation">
+                      <h3>Arguments de négociation</h3>
+                      <ul>
+                        {result.arguments_negociation.map((arg, i) => (
+                          <li key={i}>{arg}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {result.questions_reponses && result.questions_reponses.length > 0 && (
+                    <div className="section qa">
+                      <h3>Questions probables de l'acheteur — réponses prêtes</h3>
+                      {result.questions_reponses.map((qa, i) => (
+                        <div key={i} className="qa-item">
+                          <p className="qa-question">« {qa.question} »</p>
+                          <p className="qa-reponse">{qa.reponse}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
           )}
           <div className="section">
