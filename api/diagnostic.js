@@ -87,48 +87,91 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ni après, sans 
   "fiabilite_annonce_detail": "string ou null - une phrase courte (20-30 mots) justifiant le score ci-dessus, en citant le point précis qui la motive. Si aucun texte d'annonce n'a été fourni, renvoie null."
 }`;
 
-// Récupère des transactions réelles (ventes officielles DGFiP) via l'API communautaire DVF.
-// Non garantie disponible en permanence (projet Etalab/cquest) : échec géré silencieusement,
-// le rapport reste utilisable sans cette donnée, juste moins précis.
-async function fetchDvfData(codePostal, typeLocal) {
+// Géocode une adresse/localisation via la Base Adresse Nationale (API publique gratuite, sans clé).
+async function geocodeAddress(query) {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const url = `https://api.cquest.org/dvf?code_postal=${encodeURIComponent(codePostal)}&type_local=${encodeURIComponent(typeLocal)}`;
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=1`;
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);
     if (!res.ok) return null;
     const data = await res.json();
-    const features = data?.features || [];
-    if (features.length === 0) return null;
-
-    const transactions = features
-      .map((f) => f.properties)
-      .filter((p) => p && p.valeur_fonciere > 0 && p.surface_reelle_bati > 0)
-      .map((p) => ({
-        date: p.date_mutation,
-        prix: p.valeur_fonciere,
-        surface: p.surface_reelle_bati,
-        prixM2: Math.round(p.valeur_fonciere / p.surface_reelle_bati)
-      }))
-      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-    if (transactions.length === 0) return null;
-
-    const prixM2Values = transactions.map((t) => t.prixM2).sort((a, b) => a - b);
-    const mediane = prixM2Values[Math.floor(prixM2Values.length / 2)];
-    const recent = transactions.slice(0, 15); // les 15 plus récentes pour rester pertinent
-
-    return {
-      nombreTransactions: transactions.length,
-      prixM2Median: mediane,
-      prixM2Min: prixM2Values[0],
-      prixM2Max: prixM2Values[prixM2Values.length - 1],
-      exemples: recent.slice(0, 8).map((t) => `${t.date} — ${t.surface}m² — ${t.prix.toLocaleString('fr-FR')}€ (${t.prixM2}€/m²)`)
-    };
+    const feature = data?.features?.[0];
+    if (!feature) return null;
+    const [lon, lat] = feature.geometry.coordinates;
+    return { lat, lon };
   } catch (err) {
-    return null; // API communautaire non garantie, on continue sans bloquer le rapport
+    return null;
   }
+}
+
+function parseDvfTransactions(features) {
+  const transactions = (features || [])
+    .map((f) => f.properties)
+    .filter((p) => p && p.valeur_fonciere > 0 && p.surface_reelle_bati > 0)
+    .map((p) => ({
+      date: p.date_mutation,
+      prix: p.valeur_fonciere,
+      surface: p.surface_reelle_bati,
+      prixM2: Math.round(p.valeur_fonciere / p.surface_reelle_bati)
+    }))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return transactions;
+}
+
+async function queryDvfUrl(url) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data?.features || [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function summarizeTransactions(transactions, rayonUtilise) {
+  if (transactions.length === 0) return null;
+  const prixM2Values = transactions.map((t) => t.prixM2).sort((a, b) => a - b);
+  const mediane = prixM2Values[Math.floor(prixM2Values.length / 2)];
+  const recent = transactions.slice(0, 15);
+  return {
+    nombreTransactions: transactions.length,
+    prixM2Median: mediane,
+    prixM2Min: prixM2Values[0],
+    prixM2Max: prixM2Values[prixM2Values.length - 1],
+    rayonUtilise,
+    exemples: recent.slice(0, 8).map((t) => `${t.date} — ${t.surface}m² — ${t.prix.toLocaleString('fr-FR')}€ (${t.prixM2}€/m²)`)
+  };
+}
+
+// Récupère des transactions réelles (ventes officielles DGFiP) via l'API communautaire DVF.
+// Non garantie disponible en permanence (projet Etalab/cquest) : échec géré silencieusement,
+// le rapport reste utilisable sans cette donnée, juste moins précis.
+// Stratégie : d'abord le code postal exact, puis si rien (secteur rural, peu de transactions),
+// élargit progressivement en rayon géographique (2km, 5km, 10km) autour de l'adresse géocodée.
+async function fetchDvfData(codePostal, typeLocal, localisationTexte) {
+  // 1. Tentative directe par code postal
+  const urlCodePostal = `https://api.cquest.org/dvf?code_postal=${encodeURIComponent(codePostal)}&type_local=${encodeURIComponent(typeLocal)}`;
+  let transactions = parseDvfTransactions(await queryDvfUrl(urlCodePostal));
+  if (transactions.length >= 3) return summarizeTransactions(transactions, 'code postal exact');
+
+  // 2. Repli : géocoder l'adresse et élargir progressivement le rayon
+  const geo = await geocodeAddress(localisationTexte || codePostal);
+  if (!geo) return summarizeTransactions(transactions, 'code postal exact');
+
+  for (const dist of [2000, 5000, 10000]) {
+    const urlRayon = `https://api.cquest.org/dvf?lat=${geo.lat}&lon=${geo.lon}&dist=${dist}&type_local=${encodeURIComponent(typeLocal)}`;
+    transactions = parseDvfTransactions(await queryDvfUrl(urlRayon));
+    if (transactions.length >= 3) return summarizeTransactions(transactions, `${dist / 1000}km autour de l'adresse`);
+  }
+
+  // Rien trouvé même en élargissant largement
+  return transactions.length > 0 ? summarizeTransactions(transactions, '10km autour de l\'adresse') : null;
 }
 
 export default async function handler(req, res) {
@@ -218,22 +261,22 @@ export default async function handler(req, res) {
       const codePostalMatch = (form?.localisation || '').match(/\b\d{5}\b/);
       if (codePostalMatch) {
         const typeLocalDvf = (form?.type_bien || '').toLowerCase().includes('appartement') ? 'Appartement' : 'Maison';
-        dvfData = await fetchDvfData(codePostalMatch[0], typeLocalDvf);
+        dvfData = await fetchDvfData(codePostalMatch[0], typeLocalDvf, form?.localisation);
       }
       if (dvfData) {
         content.push({
           type: 'text',
-          text: `--- DONNÉES DVF OFFICIELLES (ventes RÉELLES constatées par la DGFiP, PAS des prix demandés) pour le code postal ${codePostalMatch[0]}, type "${(form?.type_bien || '').toLowerCase().includes('appartement') ? 'Appartement' : 'Maison'}" ---
-${dvfData.nombreTransactions} transactions trouvées dans ce secteur. Prix/m² réel : médiane ${dvfData.prixM2Median}€/m², fourchette observée ${dvfData.prixM2Min}€/m² à ${dvfData.prixM2Max}€/m².
+          text: `--- DONNÉES DVF OFFICIELLES (ventes RÉELLES constatées par la DGFiP, PAS des prix demandés) pour le secteur "${form?.localisation}", type "${(form?.type_bien || '').toLowerCase().includes('appartement') ? 'Appartement' : 'Maison'}" (recherche : ${dvfData.rayonUtilise}) ---
+${dvfData.nombreTransactions} transactions trouvées. Prix/m² réel : médiane ${dvfData.prixM2Median}€/m², fourchette observée ${dvfData.prixM2Min}€/m² à ${dvfData.prixM2Max}€/m².
 Exemples de transactions récentes :
 ${dvfData.exemples.join('\n')}
 --- FIN DES DONNÉES DVF ---
-Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. Utilise-les comme référence principale dans "estimation_prix", et les annonces comparables comme complément sur la concurrence actuelle. Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement (ex: "les annonces demandent plus cher que les ventes réelles du secteur, prudence sur l'ancrage").`
+Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. Utilise-les comme référence principale dans "estimation_prix", et les annonces comparables comme complément sur la concurrence actuelle. Si la recherche a dû être élargie au-delà du code postal exact (rayon en km plutôt que "code postal exact"), précise-le brièvement dans "estimation_prix" (ex: "transactions élargies à X km, la commune précise ayant peu de ventes recensées"). Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement.`
         });
       } else if (mode === 'prix') {
         content.push({
           type: 'text',
-          text: "--- DONNÉES DVF : non disponibles pour ce secteur (aucune transaction trouvée, ou API DVF temporairement indisponible) — base ton estimation uniquement sur les annonces comparables fournies, et rappelle-le dans 'estimation_prix'. ---"
+          text: "--- DONNÉES DVF : non disponibles même en élargissant la recherche (secteur avec très peu de transactions enregistrées, ou API DVF communautaire temporairement indisponible) — base ton estimation uniquement sur les annonces comparables fournies, et rappelle-le dans 'estimation_prix'. ---"
         });
       }
     }
