@@ -114,21 +114,23 @@ async function fetchDvfOfficiel(codeInsee, typeLocal) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    const url = `https://apidf-preprod.cerema.fr/dvf_opendata/mutations/?code_insee=${encodeURIComponent(codeInsee)}`;
+    // URL confirmée en inspectant explore.data.gouv.fr : https://dvf-api.data.gouv.fr/mutations/{code_insee}/{section}
+    // Champs confirmés en nomenclature DVF standard (valeur_fonciere, date_mutation, etc.)
+    const url = `https://dvf-api.data.gouv.fr/mutations/${encodeURIComponent(codeInsee)}`;
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);
     if (!res.ok) return [];
     const data = await res.json();
-    const results = Array.isArray(data) ? data : (data?.results || []);
+    const results = Array.isArray(data) ? data : (data?.results || data?.mutations || []);
     return results
       .filter((m) => {
-        const type = (m.libtypbien || m.type_local || '').toLowerCase();
+        const type = (m.type_local || '').toLowerCase();
         return typeLocal.toLowerCase() === 'maison' ? type.includes('maison') : type.includes('appartement');
       })
       .map((m) => ({
-        date_mutation: m.datemut || m.date_mutation,
-        valeur_fonciere: m.valeurfonc || m.valeur_fonciere,
-        surface_reelle_bati: m.sbati || m.surface_reelle_bati
+        date_mutation: m.date_mutation,
+        valeur_fonciere: m.valeur_fonciere,
+        surface_reelle_bati: m.surface_reelle_bati
       }));
   } catch (err) {
     return [];
