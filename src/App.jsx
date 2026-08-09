@@ -386,6 +386,11 @@ export default function App() {
       return;
     }
 
+    if (!/\b\d{5}\b/.test(form.localisation || '')) {
+      setError('Indique un code postal valide dans "Localisation" (ex : 54880) avant de lancer l\'analyse — ça évite les erreurs de secteur.');
+      return;
+    }
+
     setLoading(true);
     try {
       const images = await Promise.all(
@@ -877,8 +882,11 @@ export default function App() {
               </select>
             </label>
             <label>
-              Localisation (ville ou code postal)
-              <span className="hint">Extraite automatiquement de l'adresse si vous joignez un DPE</span>
+              Localisation (ville ou code postal) *
+              <span className="hint">
+                Obligatoire — évite les erreurs de secteur (zone climatique, prix du marché) en cas
+                d'extraction automatique incorrecte depuis le DPE ou l'annonce.
+              </span>
               <input name="localisation" value={form.localisation} onChange={handleFormChange} placeholder="ex : Metz, 57000" />
             </label>
             <label>

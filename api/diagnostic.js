@@ -307,6 +307,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Aucune donnée reçue (photos, DPE, comparables ou texte d\'annonce requis)' });
   }
 
+  if (!/\b\d{5}\b/.test(form?.localisation || '')) {
+    return res.status(400).json({ error: 'Un code postal valide est requis dans le champ Localisation.' });
+  }
+
   try {
     // On construit le contenu multimodal : texte du DPE (prioritaire, plus léger et fiable)
     // ou pages du DPE en images (repli si PDF scanné sans texte) + images du bien + texte
@@ -373,23 +377,41 @@ export default async function handler(req, res) {
       // On cherche un code postal dans plusieurs sources par ordre de priorité :
       // le champ Localisation en premier, puis le texte du DPE, puis les descriptions
       // des biens comparables — pour ne pas dépendre uniquement d'un seul champ rempli.
+      // Recolle les chiffres isolés par des espaces (artefact d'extraction PDF, ex: "5 4 8 8 0" -> "54880")
+      const dpeTextNormalise = (dpeText || '').replace(/(?:\d[ \t]+){2,}\d/g, (m) => m.replace(/[ \t]+/g, ''));
+
+      // Priorité 1 : code postal juste après le mot "Adresse" dans le DPE — c'est celui du BIEN,
+      // pas celui du cabinet du diagnostiqueur qui apparaît souvent en en-tête/pied de page avant.
+      const adresseMatch = dpeTextNormalise.match(/adresse[^\d]{0,80}(\d{5})/i);
+      // Priorité 2 : le champ Localisation rempli à la main
+      // Priorité 3 : n'importe quel code postal dans le DPE en excluant les lignes qui sentent
+      // le cabinet de diagnostic (SIREN, assurance, certification, tél du diagnostiqueur)
+      const dpeTextSansCabinet = dpeTextNormalise
+        .split('\n')
+        .filter((ligne) => !/siren|assurance|certification|n° de certification|tél\.|diagnostiqueur/i.test(ligne))
+        .join('\n');
+      const dpeFallbackMatch = dpeTextSansCabinet.match(/\b\d{5}\b/);
+
       const comparablesTexteCombine = validComparables.map((c) => c.texte || '').join(' ');
       console.error('[DVF-DEBUG] Sources dispo pour code postal:', {
         localisationLength: (form?.localisation || '').length,
+        adresseMatchTrouve: adresseMatch?.[1] || null,
+        dpeFallbackMatchTrouve: dpeFallbackMatch?.[0] || null,
         dpeTextLength: (dpeText || '').length,
-        dpeTextApercu: (dpeText || '').slice(0, 150),
         comparablesTexteLength: comparablesTexteCombine.length
       });
-      let sourceRecherche = `${form?.localisation || ''} ${dpeText || ''} ${comparablesTexteCombine}`;
-      // L'extraction de texte PDF peut séparer les chiffres par des espaces (ex: "5 4 8 8 0"
-      // au lieu de "54880") selon la mise en forme du document source — on recolle ces séquences
-      // de chiffres isolés avant de chercher un code postal, sinon le regex \d{5} ne matche jamais.
-      sourceRecherche = sourceRecherche.replace(/(?:\d[ \t]+){2,}\d/g, (match) => match.replace(/[ \t]+/g, ''));
-      const codePostalMatch = sourceRecherche.match(/\b\d{5}\b/);
-      const localisationEffective = form?.localisation || codePostalMatch?.[0] || '';
-      if (codePostalMatch) {
+
+      const codePostalTrouve =
+        (form?.localisation || '').match(/\b\d{5}\b/)?.[0] ||
+        adresseMatch?.[1] ||
+        dpeFallbackMatch?.[0] ||
+        comparablesTexteCombine.match(/\b\d{5}\b/)?.[0] ||
+        null;
+
+      const localisationEffective = form?.localisation || codePostalTrouve || '';
+      if (codePostalTrouve) {
         const typeLocalDvf = (form?.type_bien || '').toLowerCase().includes('appartement') ? 'Appartement' : 'Maison';
-        dvfData = await fetchDvfData(codePostalMatch[0], typeLocalDvf, localisationEffective);
+        dvfData = await fetchDvfData(codePostalTrouve, typeLocalDvf, localisationEffective);
       } else {
         console.error('[DVF-DEBUG] Aucun code postal trouvé dans localisation/DPE/comparables — recherche DVF non lancée');
       }
