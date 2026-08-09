@@ -689,6 +689,14 @@ button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
   margin-bottom: 22px;
   border-radius: 4px;
 }
+.empty-report-note {
+  font-size: 13.5px;
+  color: var(--heat);
+  background: var(--heat-soft);
+  padding: 12px 16px;
+  border-radius: 7px;
+  margin-bottom: 20px;
+}
 .section.cout-annuel { background: #EFF6F1; padding: 14px 16px; border-radius: 7px; }
 .section.cout-annuel h3 { color: var(--ok); }
 .section.cout-annuel .value { color: var(--ok); }

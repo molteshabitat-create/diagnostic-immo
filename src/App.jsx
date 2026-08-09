@@ -325,10 +325,13 @@ export default function App() {
     "Je lis les données du DPE…",
     "Calcul de l'isolation et du chauffage…",
     "Je croise les informations de l'annonce…",
+    "J'analyse les annonces comparables…",
+    "Je positionne le prix par rapport au secteur…",
     "Je vérifie la cohérence des chiffres…",
     "Je prépare le budget travaux…",
     "Je rédige les arguments de négociation…",
     "Je prépare les réponses aux questions…",
+    "Patientez quelques instants, l'analyse est en cours…",
     "Finalisation du rapport…"
   ];
 
@@ -425,21 +428,11 @@ export default function App() {
 
       const data = await res.json();
 
-      // Vérifie que le rapport contient vraiment du contenu avant de l'afficher.
-      // Sans ça, une réponse vide ou mal formée s'affiche comme un rapport "vide" au lieu d'une erreur claire.
-      // On accepte si AU MOINS UN des champs principaux est rempli (pas uniquement enveloppe_thermique,
-      // qui peut légitimement être minimal en mode prix pur).
-      const hasContent =
-        data &&
-        (
-          (typeof data.enveloppe_thermique === 'string' && data.enveloppe_thermique.trim().length > 0) ||
-          (typeof data.estimation_prix === 'string' && data.estimation_prix.trim().length > 0) ||
-          (typeof data.verdict_global === 'string' && data.verdict_global.trim().length > 0) ||
-          (typeof data.budget_estime === 'string' && data.budget_estime.trim().length > 0)
-        );
-
-      if (!hasContent) {
-        throw new Error('Réponse incomplète du serveur');
+      // Pas de blocage strict ici : chaque section du rapport s'affiche déjà de façon
+      // conditionnelle (result.xxx && ...), donc une réponse éparse s'affiche simplement
+      // avec moins de sections plutôt que d'être bloquée en erreur.
+      if (!data || typeof data !== 'object') {
+        throw new Error('Réponse invalide du serveur');
       }
 
       setResult(data);
@@ -1055,6 +1048,13 @@ export default function App() {
             <div className="verdict-global">
               {result.verdict_global}
             </div>
+          )}
+
+          {!result.verdict_global && !result.enveloppe_thermique && !result.estimation_prix && !result.budget_estime && (
+            <p className="empty-report-note">
+              L'analyse n'a pas pu produire de résultat exploitable avec les données fournies —
+              essaie d'ajouter des photos, un DPE ou des annonces comparables, puis relance.
+            </p>
           )}
 
           {result.analyse_annonce && (
