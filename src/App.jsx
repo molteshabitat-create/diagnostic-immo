@@ -756,6 +756,17 @@ export default function App() {
             )}
           </label>
 
+          {photos.length > 0 && (
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={photoRightsConfirmed}
+                onChange={(e) => setPhotoRightsConfirmed(e.target.checked)}
+              />
+              Je confirme être autorisé à utiliser ces photos (prises par moi-même ou dont l'usage m'est permis)
+            </label>
+          )}
+
           <div className="comparables-block">
             <h3 className="comparables-title">Annonces comparables (optionnel)</h3>
             <p className="hint comparables-intro">
@@ -812,17 +823,6 @@ export default function App() {
               </div>
             ))}
           </div>
-
-          {photos.length > 0 && (
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={photoRightsConfirmed}
-                onChange={(e) => setPhotoRightsConfirmed(e.target.checked)}
-              />
-              Je confirme être autorisé à utiliser ces photos (prises par moi-même ou dont l'usage m'est permis)
-            </label>
-          )}
 
           <label>
             DPE officiel (PDF ou photo, optionnel)
