@@ -162,6 +162,7 @@ export default function App() {
     chauffage: [],
     dpe: '',
     annonce: '',
+    comparables_texte: '',
     nom_agence: '',
     reference_bien: ''
   });
@@ -685,6 +686,17 @@ export default function App() {
                 ))}
               </div>
             )}
+          </label>
+
+          <label>
+            Descriptions des annonces comparables (optionnel)
+            <span className="hint">Collez le texte de description de chaque annonce comparable (état, rénovation...) — la capture seule ne montre souvent que le prix, pas le détail.</span>
+            <textarea
+              name="comparables_texte"
+              value={form.comparables_texte}
+              onChange={handleFormChange}
+              placeholder="Collez ici la description de chaque annonce comparable, l'une après l'autre..."
+            />
           </label>
 
           {mode === 'diagnostic' && photos.length > 0 && (

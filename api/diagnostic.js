@@ -98,7 +98,7 @@ export default async function handler(req, res) {
   const hasDpeText = dpeText && typeof dpeText === 'string' && dpeText.trim().length > 0;
   const hasDpe = hasDpeImages || hasDpeText;
   const hasAnnonce = form?.annonce && form.annonce.trim().length > 0;
-  const hasComparablesCheck = comparablesImages && Array.isArray(comparablesImages) && comparablesImages.length > 0;
+  const hasComparablesCheck = (comparablesImages && Array.isArray(comparablesImages) && comparablesImages.length > 0) || (form?.comparables_texte && form.comparables_texte.trim().length > 0);
 
   if (!hasImages && !hasDpe && !hasAnnonce && !hasComparablesCheck) {
     return res.status(400).json({ error: 'Aucune donnée reçue (photos, DPE, comparables ou texte d\'annonce requis)' });
@@ -177,7 +177,7 @@ Infos déclarées sur le bien :
 - Système(s) de rafraîchissement déclaré(s) : ${form?.systeme_rafraichissement && form.systeme_rafraichissement.length > 0 ? form.systeme_rafraichissement.join(', ') : 'non renseigné'}
 - Piscine sur le terrain : ${form?.piscine ? 'oui' : 'non déclarée'}
 - Panneaux solaires installés : ${form?.panneaux_solaires ? 'oui' : 'non déclarés'}
-${hasDpeText ? "\nLe texte du document DPE officiel a été fourni intégralement ci-dessus : utilise les données qu'il contient en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : hasDpeImages ? "\nLes premières images fournies (avant les photos du bien) sont issues d'un document DPE officiel (PDF converti en images ou photo) : utilise les données qu'elles contiennent en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur :\n"""${form.annonce}"""\n` : ''}
+${hasDpeText ? "\nLe texte du document DPE officiel a été fourni intégralement ci-dessus : utilise les données qu'il contient en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : hasDpeImages ? "\nLes premières images fournies (avant les photos du bien) sont issues d'un document DPE officiel (PDF converti en images ou photo) : utilise les données qu'elles contiennent en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur (le bien diagnostiqué) :\n"""${form.annonce}"""\n` : ''}${form?.comparables_texte ? `\nDescriptions textuelles des annonces COMPARABLES (autres biens du secteur, PAS le bien diagnostiqué) fournies par l'utilisateur :\n"""${form.comparables_texte}"""\nUtilise ce texte en complément des captures d'écran comparables pour affiner "estimation_prix" (état des biens comparables, mentions de rénovation, etc.).\n` : ''}
 Analyse les photos, le document DPE si fourni, et le texte de l'annonce si fourni (en gardant un œil critique : les annonces enjolivent parfois la réalité) et fournis le diagnostic au format JSON demandé.`
       }
     );
