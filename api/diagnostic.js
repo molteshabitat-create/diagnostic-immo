@@ -58,7 +58,7 @@ Règles impératives :
 - Si "Panneaux solaires installés" est déclaré oui, ou une puissance en kWc est mentionnée dans l'annonce/DPE : mentionne-le dans "chauffage_ventilation". La nuance "le bon DPE peut venir du solaire plutôt que de l'isolation" ne s'applique QUE pour une installation significative (au-delà de 3 kWc environ, ou puissance non précisée) — dans ce cas seulement, distingue bien les deux dans "enveloppe_thermique" pour ne pas surestimer l'isolation réelle. Pour une PETITE installation (en dessous de 3 kWc, ex : 1 kWc), son impact sur la consommation globale est marginal et n'explique pas un bon DPE à elle seule : dans ce cas, reste positif et confiant sur la qualité de l'isolation si la période de construction (RT2012/RE2020) la justifie déjà — ne nuance pas artificiellement "enveloppe_thermique" à cause d'une installation trop petite pour avoir un vrai impact. Sur la question du contrat de revente/transférabilité, même logique de proportionnalité : pour une installation significative, ajoute un point de vigilance dédié sur l'âge, le type de contrat et la transférabilité — enjeu financier réel. Pour une petite installation, l'enjeu est négligeable (quelques dizaines d'euros par an) : n'en fais pas un point de vigilance à part entière ni une question dédiée dans "questions_reponses" — une mention brève dans "chauffage_ventilation" suffit.
 - Avant de conclure à l'absence de VMC (uniquement si aucun document DPE ne renseigne ce point), examine activement chaque photo de pièce humide (cuisine, salle de bain, WC) à la recherche d'une bouche d'extraction : c'est un petit élément discret, généralement une grille ronde ou rectangulaire blanche/plastique en angle de plafond ou en partie haute de mur, facile à manquer sur une photo générale de pièce. Comme pour les indices d'ITE, ne formule JAMAIS "aucune VMC visible" comme un constat négatif définitif si le cadrage des photos ne montre pas clairement les angles de plafond des pièces humides — formule plutôt "aucune bouche de VMC nettement visible sur les photos fournies, mais ce type de petit élément est facilement absent du cadrage ; à vérifier précisément dans chaque pièce humide lors de la visite".
 - Interprétation experte des configurations multi-systèmes de chauffage (gaz + bois/granulés + PAC air-air notamment) : ne traite JAMAIS la présence de plusieurs systèmes comme un simple surcoût d'entretien à additionner — c'est une configuration économique cohérente et fréquente, à expliquer positivement à l'agent avec cette logique : la chaudière gaz est généralement l'équipement d'origine du bien (installée à une époque où le gaz était bon marché), elle assure la base du chauffage et l'eau chaude sanitaire ; un poêle à bois ou granulés est souvent ajouté ensuite comme complément économique pour limiter la facture de gaz sur les mois les plus froids ; une PAC air-air sert principalement au confort d'été (climatisation) et, en mi-saison (printemps/automne), permet d'éviter d'allumer le chauffage central au gaz ou le poêle pour un besoin de chaleur ponctuel et limité — ce qui réduit la consommation globale plutôt que de l'augmenter. Présente cette lecture comme une explication rassurante de la logique du bien dans "chauffage_ventilation", plutôt que de simplement lister "3 systèmes = 3 entretiens = coût cumulé" sans donner de sens à cette configuration.
-- Méthodologie pour "estimation_prix" (uniquement si des captures d'annonces comparables sont fournies, clairement identifiées comme telles dans le message — jamais confondues avec les photos du bien diagnostiqué) : 1) Extrais de chaque capture le prix affiché, la surface, et le prix/m² qui en découle (calcule-le si non affiché directement). 2) Calcule une fourchette de prix/m² moyenne à partir de l'ensemble des comparables. 3) Compare l'état du bien diagnostiqué (budget travaux déjà estimé, classe DPE) à ce que suggèrent les comparables sur leur propre état si mentionné (rénové, à rafraîchir, etc.) : si le bien diagnostiqué nécessite plus de travaux que les comparables ne semblent en avoir besoin, positionne-le en bas de la fourchette ; à l'inverse s'il est mieux équipé/rénové, positionne-le plutôt en haut. 4) Rappelle TOUJOURS que ce sont des prix demandés par des vendeurs, pas des prix de vente réels constatés — donc une indication de positionnement concurrentiel, pas une valeur garantie. Si moins de 2 comparables exploitables sont fournis, précise que l'échantillon est trop faible pour une vraie moyenne et reste très prudent dans la formulation.
+- Méthodologie pour "estimation_prix" : 1) Si des données DVF officielles sont fournies dans le message (ventes RÉELLES du secteur), utilise-les comme référence PRINCIPALE et cite le prix/m² médian réel constaté. 2) Si des captures d'annonces comparables sont fournies (clairement identifiées comme telles, jamais confondues avec les photos du bien diagnostiqué), extrais de chaque capture le prix affiché, la surface, et le prix/m² qui en découle (calcule-le si non affiché directement), pour connaître le niveau de la concurrence actuelle — mais précise toujours qu'il s'agit de prix DEMANDÉS, pas de ventes réelles. 3) Si les deux sources sont disponibles, ancre ta fourchette finale sur le prix/m² DVF réel, et mentionne l'écart avec les prix demandés des comparables s'il est notable (ex: vendeurs qui visent plus haut que le marché réel, ou l'inverse). 4) Compare l'état du bien diagnostiqué (budget travaux déjà estimé, classe DPE) à ce que suggèrent les comparables sur leur propre état si mentionné (rénové, à rafraîchir, etc.) : si le bien diagnostiqué nécessite plus de travaux, positionne-le en bas de la fourchette ; à l'inverse s'il est mieux équipé/rénové, positionne-le plutôt en haut. 5) Ajustement DPE : si le bien diagnostiqué est classé A ou B alors que les comparables/le secteur sont plutôt en C-D (ou l'inverse), applique un ajustement de +7% à +15% par rapport à un bien équivalent classé D (source : études Notaires de France, "valeur verte") — reste dans le bas de cette fourchette par défaut (l'écart réel varie énormément selon la région, de quasi nul dans certains marchés tendus à plus marqué ailleurs), et ne l'applique que si tu as un point de comparaison DPE clair (comparables ou DVF avec classe connue). 6) Ajustement surface du terrain : NE JAMAIS traiter le terrain/jardin comme un pourcentage global fixe sur le prix total — utilise la méthode professionnelle de pondération : 1m² de terrain non bâti vaut entre 20% et 50% du prix au m² habitable (20% en zone rurale/périurbaine standard, jusqu'à 50% en zone urbaine dense), à ajouter à la valeur du bâti plutôt qu'à multiplier dessus. Si tu appliques cet ajustement, précise brièvement le calcul (ex : "terrain de 500m² à ~20% du prix du m² habitable, soit une valeur ajoutée d'environ Xk€"). 7) Si NI données DVF NI comparables ne sont disponibles, dis-le clairement dans "estimation_prix" plutôt que d'inventer un chiffre. Si moins de 2 comparables exploitables sont fournis et pas de DVF, précise que l'échantillon est trop faible pour une vraie moyenne et reste très prudent dans la formulation.
 - Le diagnostic porte principalement sur les besoins de chauffage (hiver). Dans "score_transparence", en une phrase, adapte le message sur le confort d'été selon ce qui a été identifié, dans cet ordre de priorité :
   0. SI le champ "Système(s) de rafraîchissement déclaré(s)" est renseigné (autre que "Je ne sais pas" ou vide) : c'est la source la plus fiable, utilise-la directement — plusieurs systèmes peuvent être cumulés (ex : "Climatisation réversible / PAC air-air, Plancher rafraîchissant"), cite-les tous. "Climatisation réversible / PAC air-air (splits)", "Puits canadien", "Géothermie" ou "Plancher rafraîchissant" → confort d'été couvert, dis-le positivement et cite le(s) système(s) exact(s). Si "VMC thermodynamique" est le SEUL système coché (sans autre système listé ci-dessus) → généralement positif pour le confort d'été mais avec une nuance : son effet rafraîchissant est plus modéré qu'une PAC air-air ou une climatisation dédiée, précise-le brièvement. "Aucun" → confort d'été non garanti, formule l'avertissement complet (inertie, orientation, surface vitrée).
   0bis. SI aucun "Système de rafraîchissement" n'est déclaré (ou "Je ne sais pas") MAIS que le "Type de ventilation déclaré" est "VMC double flux" : mentionne un effet positif modéré sur le confort d'été grâce à la fonction bypass (air frais nocturne réinjecté directement, sans passer par l'échangeur, limitant la surchauffe) — mais précise que cet effet reste limité au renouvellement d'air et n'agit pas sur les apports de chaleur par les vitrages, le soleil ou les murs, contrairement à une vraie climatisation. Ne formule pas cela comme "confort d'été garanti", plutôt comme une atténuation partielle.
@@ -86,6 +86,50 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ni après, sans 
   "fiabilite_annonce": "string ou null - UNIQUEMENT si un texte d'annonce a été fourni, une valeur parmi exactement : 'Élevée', 'Moyenne', ou 'Faible'. Si aucun texte d'annonce n'a été fourni, renvoie null.",
   "fiabilite_annonce_detail": "string ou null - une phrase courte (20-30 mots) justifiant le score ci-dessus, en citant le point précis qui la motive. Si aucun texte d'annonce n'a été fourni, renvoie null."
 }`;
+
+// Récupère des transactions réelles (ventes officielles DGFiP) via l'API communautaire DVF.
+// Non garantie disponible en permanence (projet Etalab/cquest) : échec géré silencieusement,
+// le rapport reste utilisable sans cette donnée, juste moins précis.
+async function fetchDvfData(codePostal, typeLocal) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const url = `https://api.cquest.org/dvf?code_postal=${encodeURIComponent(codePostal)}&type_local=${encodeURIComponent(typeLocal)}`;
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const features = data?.features || [];
+    if (features.length === 0) return null;
+
+    const transactions = features
+      .map((f) => f.properties)
+      .filter((p) => p && p.valeur_fonciere > 0 && p.surface_reelle_bati > 0)
+      .map((p) => ({
+        date: p.date_mutation,
+        prix: p.valeur_fonciere,
+        surface: p.surface_reelle_bati,
+        prixM2: Math.round(p.valeur_fonciere / p.surface_reelle_bati)
+      }))
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    if (transactions.length === 0) return null;
+
+    const prixM2Values = transactions.map((t) => t.prixM2).sort((a, b) => a - b);
+    const mediane = prixM2Values[Math.floor(prixM2Values.length / 2)];
+    const recent = transactions.slice(0, 15); // les 15 plus récentes pour rester pertinent
+
+    return {
+      nombreTransactions: transactions.length,
+      prixM2Median: mediane,
+      prixM2Min: prixM2Values[0],
+      prixM2Max: prixM2Values[prixM2Values.length - 1],
+      exemples: recent.slice(0, 8).map((t) => `${t.date} — ${t.surface}m² — ${t.prix.toLocaleString('fr-FR')}€ (${t.prixM2}€/m²)`)
+    };
+  } catch (err) {
+    return null; // API communautaire non garantie, on continue sans bloquer le rapport
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -164,6 +208,34 @@ export default async function handler(req, res) {
         }
       });
       content.push({ type: 'text', text: '--- FIN DES ANNONCES COMPARABLES ---' });
+    }
+
+    // En mode estimation de prix, on tente de récupérer les VRAIES transactions DVF
+    // (ventes officielles DGFiP) du secteur pour ancrer l'estimation sur du réel,
+    // pas uniquement sur des prix demandés par des vendeurs potentiellement optimistes.
+    let dvfData = null;
+    if (mode === 'prix') {
+      const codePostalMatch = (form?.localisation || '').match(/\b\d{5}\b/);
+      if (codePostalMatch) {
+        const typeLocalDvf = (form?.type_bien || '').toLowerCase().includes('appartement') ? 'Appartement' : 'Maison';
+        dvfData = await fetchDvfData(codePostalMatch[0], typeLocalDvf);
+      }
+      if (dvfData) {
+        content.push({
+          type: 'text',
+          text: `--- DONNÉES DVF OFFICIELLES (ventes RÉELLES constatées par la DGFiP, PAS des prix demandés) pour le code postal ${codePostalMatch[0]}, type "${(form?.type_bien || '').toLowerCase().includes('appartement') ? 'Appartement' : 'Maison'}" ---
+${dvfData.nombreTransactions} transactions trouvées dans ce secteur. Prix/m² réel : médiane ${dvfData.prixM2Median}€/m², fourchette observée ${dvfData.prixM2Min}€/m² à ${dvfData.prixM2Max}€/m².
+Exemples de transactions récentes :
+${dvfData.exemples.join('\n')}
+--- FIN DES DONNÉES DVF ---
+Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. Utilise-les comme référence principale dans "estimation_prix", et les annonces comparables comme complément sur la concurrence actuelle. Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement (ex: "les annonces demandent plus cher que les ventes réelles du secteur, prudence sur l'ancrage").`
+        });
+      } else if (mode === 'prix') {
+        content.push({
+          type: 'text',
+          text: "--- DONNÉES DVF : non disponibles pour ce secteur (aucune transaction trouvée, ou API DVF temporairement indisponible) — base ton estimation uniquement sur les annonces comparables fournies, et rappelle-le dans 'estimation_prix'. ---"
+        });
+      }
     }
 
     content.push(
