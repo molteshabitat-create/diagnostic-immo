@@ -227,11 +227,13 @@ async function fetchDvfData(codePostal, typeLocal, localisationTexte) {
   const geo = await geocodeAddress(localisationTexte || codePostal);
 
   // 1. Tentative sur les fichiers CSV officiels GeoDVF (files.data.gouv.fr), par commune exacte
+  // Seuil bas (1 suffit) car c'est la source la plus fiable — sur une petite commune,
+  // même 1-2 vraies ventes valent mieux qu'un repli sur une source moins fiable.
   if (geo?.codeInsee) {
     const transactionsOfficiel = parseDvfTransactions(
       (await fetchDvfCsvCommune(geo.codeInsee, typeLocal)).map((p) => ({ properties: p }))
     );
-    if (transactionsOfficiel.length >= 3) {
+    if (transactionsOfficiel.length >= 1) {
       return summarizeTransactions(transactionsOfficiel, 'commune exacte (source officielle GeoDVF)');
     }
   }
@@ -351,7 +353,7 @@ ${dvfData.nombreTransactions} transactions trouvées. Prix/m² réel : médiane 
 Exemples de transactions récentes :
 ${dvfData.exemples.join('\n')}
 --- FIN DES DONNÉES DVF ---
-Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. Utilise-les comme référence principale dans "estimation_prix", et les annonces comparables comme complément sur la concurrence actuelle. Si la recherche a dû être élargie au-delà du code postal exact (rayon en km plutôt que "code postal exact"), précise-le brièvement dans "estimation_prix" (ex: "transactions élargies à X km, la commune précise ayant peu de ventes recensées") ET ajoute cette mise en garde si le bien est en zone frontalière (notamment proximité Luxembourg, Suisse, Allemagne — fréquent en Lorraine/Grand Est/Alsace) : la proximité immédiate d'une frontière augmente systématiquement les prix par rapport aux communes plus éloignées, à cause du pouvoir d'achat des travailleurs frontaliers. Une moyenne calculée sur un rayon élargi (5-10km) peut donc mélanger des communes à des distances très différentes de la frontière et donner un prix moyen peu représentatif — précise que ce facteur n'est pas isolé dans le calcul et invite à la prudence si le bien est particulièrement proche ou éloigné de la frontière par rapport aux transactions utilisées. Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement.`
+Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. Utilise-les comme référence principale dans "estimation_prix", et les annonces comparables comme complément sur la concurrence actuelle. Si le nombre de transactions trouvées est très faible (1 ou 2), précise-le explicitement ("échantillon très réduit, N vente(s) seulement") et reste prudent dans la formulation plutôt que de présenter ce chiffre comme une moyenne fiable — mais ne l'écarte pas pour autant, une vraie vente récente reste plus fiable qu'un prix demandé, même seule. Si la recherche a dû être élargie au-delà du code postal exact (rayon en km plutôt que "code postal exact"), précise-le brièvement dans "estimation_prix" (ex: "transactions élargies à X km, la commune précise ayant peu de ventes recensées") ET ajoute cette mise en garde si le bien est en zone frontalière (notamment proximité Luxembourg, Suisse, Allemagne — fréquent en Lorraine/Grand Est/Alsace) : la proximité immédiate d'une frontière augmente systématiquement les prix par rapport aux communes plus éloignées, à cause du pouvoir d'achat des travailleurs frontaliers. Une moyenne calculée sur un rayon élargi (5-10km) peut donc mélanger des communes à des distances très différentes de la frontière et donner un prix moyen peu représentatif — précise que ce facteur n'est pas isolé dans le calcul et invite à la prudence si le bien est particulièrement proche ou éloigné de la frontière par rapport aux transactions utilisées. Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement.`
         });
       } else if (mode === 'prix') {
         content.push({
