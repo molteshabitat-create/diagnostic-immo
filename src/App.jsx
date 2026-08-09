@@ -775,6 +775,7 @@ export default function App() {
             </label>
           )}
 
+          {mode === 'prix' && (
           <div className="comparables-block">
             <h3 className="comparables-title">Annonces comparables (optionnel)</h3>
             <p className="hint comparables-intro">
@@ -831,6 +832,7 @@ export default function App() {
               </div>
             ))}
           </div>
+          )}
 
           <label>
             DPE officiel (PDF ou photo, optionnel)
@@ -873,6 +875,7 @@ export default function App() {
             </label>
             <label>
               Localisation (ville ou code postal)
+              <span className="hint">Extraite automatiquement de l'adresse si vous joignez un DPE</span>
               <input name="localisation" value={form.localisation} onChange={handleFormChange} placeholder="ex : Metz, 57000" />
             </label>
             <label>
