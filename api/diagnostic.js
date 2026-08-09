@@ -106,35 +106,71 @@ async function geocodeAddress(query) {
   }
 }
 
-// Tentative sur l'API officielle Cerema (DVF+ open-data), plus complète que l'API communautaire
-// mais encore en pré-production selon leur propre documentation — d'où le repli sur cquest ensuite.
-// Les noms de champs exacts n'ont pas pu être testés en sandbox (domaine bloqué) : filtrage défensif,
-// retombe silencieusement sur l'API communautaire si le format ne correspond pas.
-async function fetchDvfOfficiel(codeInsee, typeLocal) {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    // URL confirmée en inspectant explore.data.gouv.fr : https://dvf-api.data.gouv.fr/mutations/{code_insee}/{section}
-    // Champs confirmés en nomenclature DVF standard (valeur_fonciere, date_mutation, etc.)
-    const url = `https://dvf-api.data.gouv.fr/mutations/${encodeURIComponent(codeInsee)}`;
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!res.ok) return [];
-    const data = await res.json();
-    const results = Array.isArray(data) ? data : (data?.results || data?.mutations || []);
-    return results
-      .filter((m) => {
-        const type = (m.type_local || '').toLowerCase();
-        return typeLocal.toLowerCase() === 'maison' ? type.includes('maison') : type.includes('appartement');
-      })
-      .map((m) => ({
-        date_mutation: m.date_mutation,
-        valeur_fonciere: m.valeur_fonciere,
-        surface_reelle_bati: m.surface_reelle_bati
-      }));
-  } catch (err) {
-    return [];
+// Parseur CSV simple, robuste aux champs entre guillemets contenant des virgules (adresses notamment).
+function parseCsvLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
   }
+  result.push(current);
+  return result;
+}
+
+// Récupère les transactions officielles via les fichiers CSV bruts GeoDVF (files.data.gouv.fr),
+// hébergés directement sur l'infrastructure officielle data.gouv.fr, un fichier par commune —
+// bien plus fiable qu'une API tierce car c'est un simple fichier statique à l'URL stable et documentée.
+// On combine les 2 années les plus récentes disponibles pour un échantillon suffisant sans trop attendre.
+async function fetchDvfCsvCommune(codeInsee, typeLocal) {
+  const dept = codeInsee.startsWith('97') ? codeInsee.slice(0, 3) : codeInsee.slice(0, 2);
+  const currentYear = new Date().getFullYear();
+  const years = [currentYear - 1, currentYear - 2]; // années pleines les plus récentes probables
+  const allTransactions = [];
+
+  for (const year of years) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const url = `https://files.data.gouv.fr/geo-dvf/latest/csv/${year}/communes/${dept}/${codeInsee}.csv`;
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!res.ok) continue;
+      const text = await res.text();
+      const lines = text.split('\n').filter((l) => l.trim().length > 0);
+      if (lines.length < 2) continue;
+
+      const headers = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase());
+      const idxValeur = headers.indexOf('valeur_fonciere');
+      const idxSurface = headers.indexOf('surface_reelle_bati');
+      const idxType = headers.indexOf('type_local');
+      const idxDate = headers.indexOf('date_mutation');
+      if (idxValeur === -1 || idxSurface === -1 || idxType === -1) continue;
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCsvLine(lines[i]);
+        const type = (cols[idxType] || '').toLowerCase();
+        const matchType = typeLocal.toLowerCase() === 'maison' ? type.includes('maison') : type.includes('appartement');
+        if (!matchType) continue;
+        allTransactions.push({
+          date_mutation: cols[idxDate],
+          valeur_fonciere: parseFloat(cols[idxValeur]),
+          surface_reelle_bati: parseFloat(cols[idxSurface])
+        });
+      }
+    } catch (err) {
+      continue; // année indisponible ou erreur réseau, on continue avec l'année suivante
+    }
+  }
+  return allTransactions;
 }
 
 function parseDvfTransactions(features) {
@@ -186,16 +222,16 @@ function summarizeTransactions(transactions, rayonUtilise) {
 // Stratégie : d'abord le code postal exact, puis si rien (secteur rural, peu de transactions),
 // élargit progressivement en rayon géographique (2km, 5km, 10km) autour de l'adresse géocodée.
 async function fetchDvfData(codePostal, typeLocal, localisationTexte) {
-  // 0. Géocodage d'abord (nécessaire pour l'API officielle ET le repli en rayon)
+  // 0. Géocodage d'abord (nécessaire pour la source officielle ET le repli en rayon)
   const geo = await geocodeAddress(localisationTexte || codePostal);
 
-  // 1. Tentative sur l'API officielle Cerema (DVF+ open-data) via le code INSEE
+  // 1. Tentative sur les fichiers CSV officiels GeoDVF (files.data.gouv.fr), par commune exacte
   if (geo?.codeInsee) {
     const transactionsOfficiel = parseDvfTransactions(
-      (await fetchDvfOfficiel(geo.codeInsee, typeLocal)).map((p) => ({ properties: p }))
+      (await fetchDvfCsvCommune(geo.codeInsee, typeLocal)).map((p) => ({ properties: p }))
     );
     if (transactionsOfficiel.length >= 3) {
-      return summarizeTransactions(transactionsOfficiel, 'commune exacte (source officielle Cerema)');
+      return summarizeTransactions(transactionsOfficiel, 'commune exacte (source officielle GeoDVF)');
     }
   }
 
