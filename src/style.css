@@ -313,9 +313,9 @@ textarea { resize: vertical; min-height: 80px; }
   border-radius: 7px;
   background: var(--paper);
   flex-wrap: wrap;
-  cursor: text;
+  cursor: pointer;
 }
-.upload-zone:focus {
+.upload-zone-active {
   outline: 2px solid var(--blueprint);
   outline-offset: 2px;
   border-style: solid;

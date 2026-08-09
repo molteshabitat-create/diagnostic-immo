@@ -198,29 +198,31 @@ export default function App() {
     return null;
   };
 
-  const handlePhotoPaste = (e) => {
-    const file = getImageFromClipboard(e);
-    if (file) {
+  // 'main' pour les photos du bien, ou l'index du bien comparable (0-4)
+  const [pasteTarget, setPasteTarget] = useState('main');
+
+  useEffect(() => {
+    const handleGlobalPaste = (e) => {
+      const file = getImageFromClipboard(e);
+      if (!file) return;
       e.preventDefault();
-      setPhotos((prev) => [...prev, file].slice(0, 5));
-    }
-  };
+      if (pasteTarget === 'main') {
+        setPhotos((prev) => [...prev, file].slice(0, 5));
+      } else if (typeof pasteTarget === 'number') {
+        setComparableSlots((prev) =>
+          prev.map((slot, i) => (i === pasteTarget ? { ...slot, photos: [file] } : slot))
+        );
+      }
+    };
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => window.removeEventListener('paste', handleGlobalPaste);
+  }, [pasteTarget]);
 
   const handleSlotPhotoChange = (slotIndex, e) => {
     const files = Array.from(e.target.files).slice(0, 1);
     setComparableSlots((prev) =>
       prev.map((slot, i) => (i === slotIndex ? { ...slot, photos: files } : slot))
     );
-  };
-
-  const handleSlotPhotoPaste = (slotIndex, e) => {
-    const file = getImageFromClipboard(e);
-    if (file) {
-      e.preventDefault();
-      setComparableSlots((prev) =>
-        prev.map((slot, i) => (i === slotIndex ? { ...slot, photos: [file] } : slot))
-      );
-    }
   };
 
   const removeSlotPhoto = (slotIndex, photoIndex) => {
@@ -678,7 +680,10 @@ export default function App() {
               id="photo-input"
               className="file-input-hidden"
             />
-            <div className="upload-zone" tabIndex="0" onPaste={handlePhotoPaste}>
+            <div
+              className={`upload-zone ${pasteTarget === 'main' ? 'upload-zone-active' : ''}`}
+              onClick={() => setPasteTarget('main')}
+            >
               <label htmlFor="photo-input" className="upload-btn">
                 Choisir des photos
               </label>
@@ -688,7 +693,7 @@ export default function App() {
                   : `${photos.length} photo${photos.length > 1 ? 's' : ''} sélectionnée${photos.length > 1 ? 's' : ''}`}
               </span>
             </div>
-            <span className="paste-hint">📋 Astuce : cliquez ici puis Ctrl+V pour coller une capture directement</span>
+            <span className="paste-hint">📋 {pasteTarget === 'main' ? 'Zone active — faites Ctrl+V pour coller une capture' : 'Cliquez ici pour activer, puis Ctrl+V'}</span>
             {photos.length > 0 && (
               <div className="thumb-grid">
                 {photos.map((f, i) => (
@@ -723,7 +728,10 @@ export default function App() {
                   id={`comparable-input-${slotIndex}`}
                   className="file-input-hidden"
                 />
-                <div className="upload-zone" tabIndex="0" onPaste={(e) => handleSlotPhotoPaste(slotIndex, e)}>
+                <div
+                  className={`upload-zone ${pasteTarget === slotIndex ? 'upload-zone-active' : ''}`}
+                  onClick={() => setPasteTarget(slotIndex)}
+                >
                   <label htmlFor={`comparable-input-${slotIndex}`} className="upload-btn">
                     Choisir la photo
                   </label>
@@ -733,7 +741,7 @@ export default function App() {
                       : `${slot.photos.length} photo${slot.photos.length > 1 ? 's' : ''}`}
                   </span>
                 </div>
-                <span className="paste-hint">📋 Cliquez ici puis Ctrl+V pour coller</span>
+                <span className="paste-hint">📋 {pasteTarget === slotIndex ? 'Zone active — Ctrl+V pour coller' : 'Cliquez pour activer, puis Ctrl+V'}</span>
                 {slot.photos.length > 0 && (
                   <div className="thumb-grid">
                     {slot.photos.map((f, i) => (
