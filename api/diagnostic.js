@@ -170,6 +170,7 @@ async function fetchDvfCsvCommune(codeInsee, typeLocal) {
       const idxType = headers.indexOf('type_local');
       const idxDate = headers.indexOf('date_mutation');
       const idxIdMutation = headers.indexOf('id_mutation');
+      const idxTerrain = headers.indexOf('surface_terrain');
       if (idxValeur === -1 || idxSurface === -1 || idxType === -1) {
         console.error('[DVF-DEBUG] Colonnes attendues introuvables dans le CSV, headers reçus:', headers);
         continue;
@@ -191,6 +192,7 @@ async function fetchDvfCsvCommune(codeInsee, typeLocal) {
 
       let matchedThisYear = 0;
       let ecartesMultiLots = 0;
+      let ecartesGrandTerrain = 0;
       for (let i = 1; i < lines.length; i++) {
         const cols = parseCsvLine(lines[i]);
         const type = (cols[idxType] || '').toLowerCase();
@@ -203,6 +205,16 @@ async function fetchDvfCsvCommune(codeInsee, typeLocal) {
             continue; // mutation à plusieurs lots (terrain+maison, plusieurs parcelles...) : prix/m² non fiable
           }
         }
+        // On écarte les propriétés avec un très grand terrain (>3000m², typiquement des propriétés
+        // rurales/agricoles) : leur prix/m² habitable n'est pas comparable à une maison de lotissement
+        // standard, ça tire artificiellement la moyenne vers le bas sans être un vrai comparable.
+        if (idxTerrain !== -1) {
+          const terrainVal = parseFloat(cols[idxTerrain]);
+          if (terrainVal > 3000) {
+            ecartesGrandTerrain++;
+            continue;
+          }
+        }
         matchedThisYear++;
         allTransactions.push({
           date_mutation: cols[idxDate],
@@ -210,7 +222,7 @@ async function fetchDvfCsvCommune(codeInsee, typeLocal) {
           surface_reelle_bati: parseFloat(cols[idxSurface])
         });
       }
-      console.error('[DVF-DEBUG] Année', year, ': CSV lu OK,', lines.length - 1, 'lignes totales,', matchedThisYear, `correspondant à "${typeLocal}" (${ecartesMultiLots} écartées car mutations à plusieurs lots)`);
+      console.error('[DVF-DEBUG] Année', year, ': CSV lu OK,', lines.length - 1, 'lignes totales,', matchedThisYear, `correspondant à "${typeLocal}" (${ecartesMultiLots} écartées multi-lots, ${ecartesGrandTerrain} écartées grand terrain >3000m²)`);
     } catch (err) {
       console.error('[DVF-DEBUG] Exception année', year, ':', err.message);
       continue; // année indisponible ou erreur réseau, on continue avec l'année suivante
