@@ -590,8 +590,8 @@ export default function App() {
       </div>
       {mode === 'prix' && (
         <p className="mode-hint">
-          Idéal pour relancer un vendeur qui bloque sur le prix — quelques infos de base et
-          des annonces comparables suffisent, sans repasser tout le diagnostic technique.
+          Idéal pour relancer un vendeur qui bloque sur le prix. Gardez photos et DPE si vous
+          les avez (ça ancre la comparaison), les détails techniques fins sont masqués ici.
         </p>
       )}
       <div className="form-card">
@@ -609,47 +609,49 @@ export default function App() {
             </label>
           </div>
 
-          {mode === 'diagnostic' && (
-            <label>
-              Photos du bien (optionnel, max 10)
-              <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques).</span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handlePhotoChange}
-                id="photo-input"
-                className="file-input-hidden"
-              />
-              <div className="upload-zone">
-                <label htmlFor="photo-input" className="upload-btn">
-                  Choisir des photos
-                </label>
-                <span className="upload-status">
-                  {photos.length === 0
-                    ? 'Aucune photo sélectionnée'
-                    : `${photos.length} photo${photos.length > 1 ? 's' : ''} sélectionnée${photos.length > 1 ? 's' : ''}`}
-                </span>
+          <label>
+            Photos du bien (optionnel, max 10)
+            <span className="hint">
+              {mode === 'prix'
+                ? "Recommandé pour ancrer l'estimation : l'IA compare l'état visible du bien aux annonces concurrentes."
+                : "Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques)."}
+            </span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoChange}
+              id="photo-input"
+              className="file-input-hidden"
+            />
+            <div className="upload-zone">
+              <label htmlFor="photo-input" className="upload-btn">
+                Choisir des photos
+              </label>
+              <span className="upload-status">
+                {photos.length === 0
+                  ? 'Aucune photo sélectionnée'
+                  : `${photos.length} photo${photos.length > 1 ? 's' : ''} sélectionnée${photos.length > 1 ? 's' : ''}`}
+              </span>
+            </div>
+            {photos.length > 0 && (
+              <div className="thumb-grid">
+                {photos.map((f, i) => (
+                  <div key={i} className="thumb-item">
+                    <img src={URL.createObjectURL(f)} alt={f.name} />
+                    <button
+                      type="button"
+                      className="thumb-remove"
+                      onClick={() => removePhoto(i)}
+                      aria-label={`Retirer ${f.name}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
-              {photos.length > 0 && (
-                <div className="thumb-grid">
-                  {photos.map((f, i) => (
-                    <div key={i} className="thumb-item">
-                      <img src={URL.createObjectURL(f)} alt={f.name} />
-                      <button
-                        type="button"
-                        className="thumb-remove"
-                        onClick={() => removePhoto(i)}
-                        aria-label={`Retirer ${f.name}`}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </label>
-          )}
+            )}
+          </label>
 
           <label>
             Annonces comparables (optionnel, max 4)
@@ -700,38 +702,34 @@ export default function App() {
             </label>
           )}
 
-          {mode === 'diagnostic' && (
-            <label>
-              DPE officiel (PDF ou photo, optionnel)
-              <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul (texte lu directement, jusqu'à 10 pages).</span>
-              <input
-                type="file"
-                accept="application/pdf,image/*"
-                onChange={handleDpeFileChange}
-                id="dpe-input"
-                className="file-input-hidden"
-              />
-              <div className="upload-zone">
-                <label htmlFor="dpe-input" className="upload-btn">Choisir un fichier</label>
-                <span className="upload-status">
-                  {dpeFile ? dpeFile.name : 'Aucun fichier sélectionné'}
-                </span>
-              </div>
-            </label>
-          )}
+          <label>
+            DPE officiel (PDF ou photo, optionnel)
+            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul (texte lu directement, jusqu'à 10 pages).</span>
+            <input
+              type="file"
+              accept="application/pdf,image/*"
+              onChange={handleDpeFileChange}
+              id="dpe-input"
+              className="file-input-hidden"
+            />
+            <div className="upload-zone">
+              <label htmlFor="dpe-input" className="upload-btn">Choisir un fichier</label>
+              <span className="upload-status">
+                {dpeFile ? dpeFile.name : 'Aucun fichier sélectionné'}
+              </span>
+            </div>
+          </label>
 
-          {mode === 'diagnostic' && (
-            <label>
-              Texte de l'annonce (optionnel)
-              <span className="hint">Copiez-collez la description pour affiner l'analyse</span>
-              <textarea
-                name="annonce"
-                value={form.annonce}
-                onChange={handleFormChange}
-                placeholder="Collez ici le texte de l'annonce..."
-              />
-            </label>
-          )}
+          <label>
+            Texte de l'annonce (optionnel)
+            <span className="hint">Copiez-collez la description pour affiner l'analyse</span>
+            <textarea
+              name="annonce"
+              value={form.annonce}
+              onChange={handleFormChange}
+              placeholder="Collez ici le texte de l'annonce..."
+            />
+          </label>
 
           <div className="grid">
             <label>
