@@ -57,6 +57,7 @@ Règles impératives :
 - Si "Panneaux solaires installés" est déclaré oui, ou une puissance en kWc est mentionnée dans l'annonce/DPE : mentionne-le dans "chauffage_ventilation". La nuance "le bon DPE peut venir du solaire plutôt que de l'isolation" ne s'applique QUE pour une installation significative (au-delà de 3 kWc environ, ou puissance non précisée) — dans ce cas seulement, distingue bien les deux dans "enveloppe_thermique" pour ne pas surestimer l'isolation réelle. Pour une PETITE installation (en dessous de 3 kWc, ex : 1 kWc), son impact sur la consommation globale est marginal et n'explique pas un bon DPE à elle seule : dans ce cas, reste positif et confiant sur la qualité de l'isolation si la période de construction (RT2012/RE2020) la justifie déjà — ne nuance pas artificiellement "enveloppe_thermique" à cause d'une installation trop petite pour avoir un vrai impact. Sur la question du contrat de revente/transférabilité, même logique de proportionnalité : pour une installation significative, ajoute un point de vigilance dédié sur l'âge, le type de contrat et la transférabilité — enjeu financier réel. Pour une petite installation, l'enjeu est négligeable (quelques dizaines d'euros par an) : n'en fais pas un point de vigilance à part entière ni une question dédiée dans "questions_reponses" — une mention brève dans "chauffage_ventilation" suffit.
 - Avant de conclure à l'absence de VMC (uniquement si aucun document DPE ne renseigne ce point), examine activement chaque photo de pièce humide (cuisine, salle de bain, WC) à la recherche d'une bouche d'extraction : c'est un petit élément discret, généralement une grille ronde ou rectangulaire blanche/plastique en angle de plafond ou en partie haute de mur, facile à manquer sur une photo générale de pièce. Comme pour les indices d'ITE, ne formule JAMAIS "aucune VMC visible" comme un constat négatif définitif si le cadrage des photos ne montre pas clairement les angles de plafond des pièces humides — formule plutôt "aucune bouche de VMC nettement visible sur les photos fournies, mais ce type de petit élément est facilement absent du cadrage ; à vérifier précisément dans chaque pièce humide lors de la visite".
 - Interprétation experte des configurations multi-systèmes de chauffage (gaz + bois/granulés + PAC air-air notamment) : ne traite JAMAIS la présence de plusieurs systèmes comme un simple surcoût d'entretien à additionner — c'est une configuration économique cohérente et fréquente, à expliquer positivement à l'agent avec cette logique : la chaudière gaz est généralement l'équipement d'origine du bien (installée à une époque où le gaz était bon marché), elle assure la base du chauffage et l'eau chaude sanitaire ; un poêle à bois ou granulés est souvent ajouté ensuite comme complément économique pour limiter la facture de gaz sur les mois les plus froids ; une PAC air-air sert principalement au confort d'été (climatisation) et, en mi-saison (printemps/automne), permet d'éviter d'allumer le chauffage central au gaz ou le poêle pour un besoin de chaleur ponctuel et limité — ce qui réduit la consommation globale plutôt que de l'augmenter. Présente cette lecture comme une explication rassurante de la logique du bien dans "chauffage_ventilation", plutôt que de simplement lister "3 systèmes = 3 entretiens = coût cumulé" sans donner de sens à cette configuration.
+- Méthodologie pour "estimation_prix" (uniquement si des captures d'annonces comparables sont fournies, clairement identifiées comme telles dans le message — jamais confondues avec les photos du bien diagnostiqué) : 1) Extrais de chaque capture le prix affiché, la surface, et le prix/m² qui en découle (calcule-le si non affiché directement). 2) Calcule une fourchette de prix/m² moyenne à partir de l'ensemble des comparables. 3) Compare l'état du bien diagnostiqué (budget travaux déjà estimé, classe DPE) à ce que suggèrent les comparables sur leur propre état si mentionné (rénové, à rafraîchir, etc.) : si le bien diagnostiqué nécessite plus de travaux que les comparables ne semblent en avoir besoin, positionne-le en bas de la fourchette ; à l'inverse s'il est mieux équipé/rénové, positionne-le plutôt en haut. 4) Rappelle TOUJOURS que ce sont des prix demandés par des vendeurs, pas des prix de vente réels constatés — donc une indication de positionnement concurrentiel, pas une valeur garantie. Si moins de 2 comparables exploitables sont fournis, précise que l'échantillon est trop faible pour une vraie moyenne et reste très prudent dans la formulation.
 - Le diagnostic porte principalement sur les besoins de chauffage (hiver). Dans "score_transparence", en une phrase, adapte le message sur le confort d'été selon ce qui a été identifié, dans cet ordre de priorité :
   0. SI le champ "Système(s) de rafraîchissement déclaré(s)" est renseigné (autre que "Je ne sais pas" ou vide) : c'est la source la plus fiable, utilise-la directement — plusieurs systèmes peuvent être cumulés (ex : "Climatisation réversible / PAC air-air, Plancher rafraîchissant"), cite-les tous. "Climatisation réversible / PAC air-air (splits)", "Puits canadien", "Géothermie" ou "Plancher rafraîchissant" → confort d'été couvert, dis-le positivement et cite le(s) système(s) exact(s). Si "VMC thermodynamique" est le SEUL système coché (sans autre système listé ci-dessus) → généralement positif pour le confort d'été mais avec une nuance : son effet rafraîchissant est plus modéré qu'une PAC air-air ou une climatisation dédiée, précise-le brièvement. "Aucun" → confort d'été non garanti, formule l'avertissement complet (inertie, orientation, surface vitrée).
   0bis. SI aucun "Système de rafraîchissement" n'est déclaré (ou "Je ne sais pas") MAIS que le "Type de ventilation déclaré" est "VMC double flux" : mentionne un effet positif modéré sur le confort d'été grâce à la fonction bypass (air frais nocturne réinjecté directement, sans passer par l'échangeur, limitant la surchauffe) — mais précise que cet effet reste limité au renouvellement d'air et n'agit pas sur les apports de chaleur par les vitrages, le soleil ou les murs, contrairement à une vraie climatisation. Ne formule pas cela comme "confort d'été garanti", plutôt comme une atténuation partielle.
@@ -76,6 +77,7 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ni après, sans 
   "budget_detail": "string - contexte et raisonnement bref sur le budget global (pourquoi cette fourchette, incertitudes principales), SANS relister chaque poste avec son montant si 'budget_postes' est rempli — le tableau des postes s'affiche déjà séparément, ce champ ne doit pas le dupliquer en prose. Si 'budget_postes' est vide, ce champ peut alors détailler les postes en texte.",
   "budget_postes": "array de 2 à 4 objets {poste, montant} ou tableau vide - décompose le budget total par poste de travaux distinct, format court (ex: {\\'poste\\': \\'VMC\\', \\'montant\\': \\'1 500€ - 4 000€\\'}). Doit être cohérent avec et dérivé de \\'budget_detail\\', jamais inventé séparément. Si le budget total est un seul poste indivisible ou trop incertain pour être décomposé, renvoie un tableau vide.",
   "cout_fonctionnement_annuel": "string ou null - une fourchette UNIQUE et synthétique du coût annuel total de fonctionnement thermique du logement (chauffage + eau chaude + entretien courant des systèmes cumulés), ex: '900€ - 1 400€/an'. Doit être cohérent avec toutes les autres estimations de coût déjà données ailleurs dans le rapport (DPE si disponible, budget bois/granulés, entretien des systèmes) — ne réinvente pas un chiffre isolé, additionne/synthétise ce qui a déjà été estimé. Si les données sont trop incomplètes pour une estimation crédible, renvoie null plutôt que d'inventer.",
+  "estimation_prix": "string ou null - UNIQUEMENT si des captures d'annonces comparables ont été fournies : positionnement de prix argumenté (50-70 mots), basé sur le prix/m² moyen extrait des annonces comparables, ajusté selon l'état réel du bien diagnostiqué (budget travaux, DPE) par rapport à ces comparables. Précise toujours qu'il s'agit de PRIX DEMANDÉS par les vendeurs (pas de prix de vente réels), donc indicatif et non garanti — recommande de vérifier aussi les prix de vente réels (ex: DVF) pour affiner. Si aucune capture comparable n'a été fournie, renvoie null.",
   "arguments_negociation": "array de strings ou tableau vide - 3 arguments de négociation maximum, courts et chiffrés, un par ligne, format 'Poste concerné : montant estimé — argument court utilisable à l'oral' (ex: 'VMC absente : 1 500€-4 000€ — installation à prévoir pour la conformité et la salubrité'). Base-toi uniquement sur les points de vigilance et le budget déjà identifiés, ne réinvente rien. Si aucun point ne justifie une négociation (bien en bon état, budget travaux faible), renvoie un tableau vide.",
   "questions_reponses": "array de 5 objets {question, reponse} maximum ou tableau vide - anticipe les questions qu'un acheteur poserait probablement en visite en voyant ce bien, avec une réponse professionnelle prête à l'oral pour l'agent/chasseur. Vise 4 à 5 questions dès que le bien a suffisamment de points distincts pour les justifier (ne te limite pas à 3 par réflexe) — couvre une bonne diversité de sujets (isolation, chauffage, budget, annonce, équipements spécifiques) plutôt que plusieurs questions proches sur le même sujet. Chaque réponse doit être équilibrée : reconnaître le point factuellement (jamais nier ou minimiser à l'excès), donner un ordre de grandeur chiffré si pertinent, et rassurer sur ce qui est déjà positif si applicable. Base-toi uniquement sur les points déjà identifiés ailleurs dans le rapport (points_vigilance, enveloppe_thermique, chauffage_ventilation) — ne réinvente rien de nouveau. Exemple de format : {\\'question\\': \\'Pourquoi je ne vois pas de VMC ?\\', \\'reponse\\': \\'Elle n'est pas visible sur ces photos, ce sera à vérifier ensemble en visite — si absente, l'installation coûte entre 1 500€ et 4 000€, déjà anticipé dans notre estimation.\\'}",
   "score_transparence": "string - ce qui a pu être évalué depuis les photos vs ce qui nécessite une visite physique",
@@ -89,7 +91,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
-  const { images, form, dpeImages, dpeText } = req.body || {};
+  const { images, form, dpeImages, dpeText, comparablesImages } = req.body || {};
 
   const hasImages = images && Array.isArray(images) && images.length > 0;
   const hasDpeImages = dpeImages && Array.isArray(dpeImages) && dpeImages.length > 0;
@@ -124,6 +126,8 @@ export default async function handler(req, res) {
       });
     }
 
+    const hasComparables = comparablesImages && Array.isArray(comparablesImages) && comparablesImages.length > 0;
+
     content.push(
       ...(images || []).map((img) => ({
         type: 'image',
@@ -132,7 +136,28 @@ export default async function handler(req, res) {
           media_type: img.media_type || 'image/jpeg',
           data: img.data
         }
-      })),
+      }))
+    );
+
+    if (hasComparables) {
+      content.push({
+        type: 'text',
+        text: "--- DÉBUT DES CAPTURES D'ANNONCES COMPARABLES : ce sont D'AUTRES biens du même secteur, PAS le bien diagnostiqué ci-dessus. Ne les mélange jamais avec les photos du bien analysé. Utilise-les uniquement pour la comparaison de prix demandée dans 'estimation_prix'. ---"
+      });
+      comparablesImages.forEach((img) => {
+        content.push({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: img.media_type || 'image/jpeg',
+            data: img.data
+          }
+        });
+      });
+      content.push({ type: 'text', text: '--- FIN DES CAPTURES COMPARABLES ---' });
+    }
+
+    content.push(
       {
         type: 'text',
         text: `Date du jour (référence pour toute évaluation de fraîcheur ou de validité d'une date) : ${new Date().toLocaleDateString('fr-FR')}

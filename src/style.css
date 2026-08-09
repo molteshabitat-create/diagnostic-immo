@@ -527,6 +527,8 @@ button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
 .section.cout-annuel { background: #EFF6F1; padding: 14px 16px; border-radius: 7px; }
 .section.cout-annuel h3 { color: var(--ok); }
 .section.cout-annuel .value { color: var(--ok); }
+.section.estimation-prix { background: #F3E8DC; padding: 14px 16px; border-radius: 7px; }
+.section.estimation-prix h3 { color: #8A5A2B; }
 .cout-annuel-note {
   font-size: 12.5px !important;
   color: var(--ink-dim) !important;

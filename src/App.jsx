@@ -145,6 +145,7 @@ export default function App() {
   const [rafraichissementOpen, setRafraichissementOpen] = useState(false);
   const [dpeFile, setDpeFile] = useState(null);
   const [photos, setPhotos] = useState([]);
+  const [comparables, setComparables] = useState([]);
   const [form, setForm] = useState({
     periode_construction: '',
     annee_exacte: '',
@@ -176,6 +177,15 @@ export default function App() {
 
   const removePhoto = (index) => {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleComparablesChange = (e) => {
+    const files = Array.from(e.target.files).slice(0, 4);
+    setComparables(files);
+  };
+
+  const removeComparable = (index) => {
+    setComparables((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleDpeFileChange = (e) => {
@@ -280,6 +290,13 @@ export default function App() {
         }))
       );
 
+      const comparablesImages = await Promise.all(
+        comparables.map(async (file) => ({
+          media_type: 'image/jpeg',
+          data: await compressImage(file)
+        }))
+      );
+
       let dpeImages = [];
       let dpeText = '';
       if (dpeFile) {
@@ -300,7 +317,7 @@ export default function App() {
       const res = await fetch('/api/diagnostic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images, form, dpeImages, dpeText })
+        body: JSON.stringify({ images, form, dpeImages, dpeText, comparablesImages })
       });
 
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
@@ -459,6 +476,13 @@ export default function App() {
         { boxColor: [239, 246, 241], titleColor: [47, 107, 79] }
       );
     }
+    if (result.estimation_prix) {
+      addSection(
+        'Positionnement de prix (annonces comparables)',
+        result.estimation_prix,
+        { boxColor: [243, 232, 220], titleColor: [138, 90, 43] }
+      );
+    }
     if (includeNegotiation && result.arguments_negociation && result.arguments_negociation.length > 0) {
       addSection(
         'Arguments de négociation',
@@ -591,6 +615,44 @@ export default function App() {
                       type="button"
                       className="thumb-remove"
                       onClick={() => removePhoto(i)}
+                      aria-label={`Retirer ${f.name}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </label>
+
+          <label>
+            Annonces comparables (optionnel, max 4)
+            <span className="hint">Captures d'écran de 2-4 annonces similaires du même secteur (Leboncoin, SeLoger...) pour positionner le prix.</span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleComparablesChange}
+              id="comparables-input"
+              className="file-input-hidden"
+            />
+            <div className="upload-zone">
+              <label htmlFor="comparables-input" className="upload-btn">Choisir des captures</label>
+              <span className="upload-status">
+                {comparables.length === 0
+                  ? 'Aucune capture sélectionnée'
+                  : `${comparables.length} capture${comparables.length > 1 ? 's' : ''} sélectionnée${comparables.length > 1 ? 's' : ''}`}
+              </span>
+            </div>
+            {comparables.length > 0 && (
+              <div className="thumb-grid">
+                {comparables.map((f, i) => (
+                  <div key={i} className="thumb-item">
+                    <img src={URL.createObjectURL(f)} alt={f.name} />
+                    <button
+                      type="button"
+                      className="thumb-remove"
+                      onClick={() => removeComparable(i)}
                       aria-label={`Retirer ${f.name}`}
                     >
                       ×
@@ -876,6 +938,12 @@ export default function App() {
               <h3>Coût de fonctionnement annuel estimé</h3>
               <span className="value">{result.cout_fonctionnement_annuel}</span>
               <p className="cout-annuel-note">Chauffage, eau chaude et entretien courant des systèmes cumulés.</p>
+            </div>
+          )}
+          {result.estimation_prix && (
+            <div className="section estimation-prix">
+              <h3>Positionnement de prix (annonces comparables)</h3>
+              <p>{result.estimation_prix}</p>
             </div>
           )}
           {((result.arguments_negociation && result.arguments_negociation.length > 0) ||
