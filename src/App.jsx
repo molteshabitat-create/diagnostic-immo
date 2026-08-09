@@ -427,8 +427,16 @@ export default function App() {
 
       // Vérifie que le rapport contient vraiment du contenu avant de l'afficher.
       // Sans ça, une réponse vide ou mal formée s'affiche comme un rapport "vide" au lieu d'une erreur claire.
+      // On accepte si AU MOINS UN des champs principaux est rempli (pas uniquement enveloppe_thermique,
+      // qui peut légitimement être minimal en mode prix pur).
       const hasContent =
-        data && typeof data.enveloppe_thermique === 'string' && data.enveloppe_thermique.trim().length > 0;
+        data &&
+        (
+          (typeof data.enveloppe_thermique === 'string' && data.enveloppe_thermique.trim().length > 0) ||
+          (typeof data.estimation_prix === 'string' && data.estimation_prix.trim().length > 0) ||
+          (typeof data.verdict_global === 'string' && data.verdict_global.trim().length > 0) ||
+          (typeof data.budget_estime === 'string' && data.budget_estime.trim().length > 0)
+        );
 
       if (!hasContent) {
         throw new Error('Réponse incomplète du serveur');
