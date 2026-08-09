@@ -313,6 +313,20 @@ textarea { resize: vertical; min-height: 80px; }
   border-radius: 7px;
   background: var(--paper);
   flex-wrap: wrap;
+  cursor: text;
+}
+.upload-zone:focus {
+  outline: 2px solid var(--blueprint);
+  outline-offset: 2px;
+  border-style: solid;
+  background: #E4EBF2;
+}
+.paste-hint {
+  display: block;
+  font-size: 11.5px;
+  color: var(--ink-dim);
+  margin-top: 5px;
+  font-style: italic;
 }
 .upload-btn {
   display: inline-block;
