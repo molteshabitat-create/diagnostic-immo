@@ -171,7 +171,7 @@ export default function App() {
   const [error, setError] = useState(null);
 
   const handlePhotoChange = (e) => {
-    const maxPhotos = dpeFile ? 6 : 10;
+    const maxPhotos = 5;
     const files = Array.from(e.target.files).slice(0, maxPhotos);
     setPhotos(files);
   };
@@ -337,11 +337,7 @@ export default function App() {
       setResult(data);
     } catch (err) {
       console.error(err);
-      if (photos.length >= 8) {
-        setError('Le diagnostic a échoué, probablement à cause du nombre de photos (traitement trop long). Réessaie avec 5-6 photos maximum pour l\'instant.');
-      } else {
-        setError('Le diagnostic a échoué. Réessaie dans un instant.');
-      }
+      setError('Le diagnostic a échoué. Réessaie dans un instant.');
     } finally {
       setLoading(false);
     }
@@ -610,7 +606,7 @@ export default function App() {
           </div>
 
           <label>
-            Photos du bien (optionnel, max 10)
+            Photos du bien (optionnel, max 5)
             <span className="hint">
               {mode === 'prix'
                 ? "Recommandé pour ancrer l'estimation : l'IA compare l'état visible du bien aux annonces concurrentes."
