@@ -370,10 +370,28 @@ export default async function handler(req, res) {
     // pas uniquement sur des prix demandés par des vendeurs potentiellement optimistes.
     let dvfData = null;
     if (mode === 'prix') {
-      const codePostalMatch = (form?.localisation || '').match(/\b\d{5}\b/);
+      // On cherche un code postal dans plusieurs sources par ordre de priorité :
+      // le champ Localisation en premier, puis le texte du DPE, puis les descriptions
+      // des biens comparables — pour ne pas dépendre uniquement d'un seul champ rempli.
+      const comparablesTexteCombine = validComparables.map((c) => c.texte || '').join(' ');
+      console.error('[DVF-DEBUG] Sources dispo pour code postal:', {
+        localisationLength: (form?.localisation || '').length,
+        dpeTextLength: (dpeText || '').length,
+        dpeTextApercu: (dpeText || '').slice(0, 150),
+        comparablesTexteLength: comparablesTexteCombine.length
+      });
+      let sourceRecherche = `${form?.localisation || ''} ${dpeText || ''} ${comparablesTexteCombine}`;
+      // L'extraction de texte PDF peut séparer les chiffres par des espaces (ex: "5 4 8 8 0"
+      // au lieu de "54880") selon la mise en forme du document source — on recolle ces séquences
+      // de chiffres isolés avant de chercher un code postal, sinon le regex \d{5} ne matche jamais.
+      sourceRecherche = sourceRecherche.replace(/(?:\d[ \t]+){2,}\d/g, (match) => match.replace(/[ \t]+/g, ''));
+      const codePostalMatch = sourceRecherche.match(/\b\d{5}\b/);
+      const localisationEffective = form?.localisation || codePostalMatch?.[0] || '';
       if (codePostalMatch) {
         const typeLocalDvf = (form?.type_bien || '').toLowerCase().includes('appartement') ? 'Appartement' : 'Maison';
-        dvfData = await fetchDvfData(codePostalMatch[0], typeLocalDvf, form?.localisation);
+        dvfData = await fetchDvfData(codePostalMatch[0], typeLocalDvf, localisationEffective);
+      } else {
+        console.error('[DVF-DEBUG] Aucun code postal trouvé dans localisation/DPE/comparables — recherche DVF non lancée');
       }
       if (dvfData) {
         content.push({
