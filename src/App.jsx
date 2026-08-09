@@ -320,20 +320,28 @@ export default function App() {
   const toggleChauffage = (option) =>
     toggleMultiSelect('chauffage', option, ['Je ne sais pas']);
 
-  const loadingMessages = [
-    "J'analyse vos photos…",
-    "Je lis les données du DPE…",
-    "Calcul de l'isolation et du chauffage…",
-    "Je croise les informations de l'annonce…",
-    "J'analyse les annonces comparables…",
-    "Je positionne le prix par rapport au secteur…",
-    "Je vérifie la cohérence des chiffres…",
-    "Je prépare le budget travaux…",
-    "Je rédige les arguments de négociation…",
-    "Je prépare les réponses aux questions…",
-    "Patientez quelques instants, l'analyse est en cours…",
-    "Finalisation du rapport…"
-  ];
+  const loadingMessages = mode === 'prix'
+    ? [
+        "J'analyse les annonces comparables…",
+        "Je consulte les données DVF officielles…",
+        "Je calcule le prix moyen du secteur…",
+        "Je positionne le bien par rapport au marché…",
+        "Je vérifie la cohérence des chiffres…",
+        "Patientez quelques instants, l'analyse est en cours…",
+        "Finalisation de l'estimation…"
+      ]
+    : [
+        "J'analyse vos photos…",
+        "Je lis les données du DPE…",
+        "Calcul de l'isolation et du chauffage…",
+        "Je croise les informations de l'annonce…",
+        "Je vérifie la cohérence des chiffres…",
+        "Je prépare le budget travaux…",
+        "Je rédige les arguments de négociation…",
+        "Je prépare les réponses aux questions…",
+        "Patientez quelques instants, l'analyse est en cours…",
+        "Finalisation du rapport…"
+      ];
 
   const [loadingElapsed, setLoadingElapsed] = useState(0);
 
