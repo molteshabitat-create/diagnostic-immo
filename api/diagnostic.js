@@ -100,9 +100,38 @@ async function geocodeAddress(query) {
     const feature = data?.features?.[0];
     if (!feature) return null;
     const [lon, lat] = feature.geometry.coordinates;
-    return { lat, lon };
+    return { lat, lon, codeInsee: feature.properties?.citycode || null };
   } catch (err) {
     return null;
+  }
+}
+
+// Tentative sur l'API officielle Cerema (DVF+ open-data), plus complète que l'API communautaire
+// mais encore en pré-production selon leur propre documentation — d'où le repli sur cquest ensuite.
+// Les noms de champs exacts n'ont pas pu être testés en sandbox (domaine bloqué) : filtrage défensif,
+// retombe silencieusement sur l'API communautaire si le format ne correspond pas.
+async function fetchDvfOfficiel(codeInsee, typeLocal) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const url = `https://apidf-preprod.cerema.fr/dvf_opendata/mutations/?code_insee=${encodeURIComponent(codeInsee)}`;
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const results = Array.isArray(data) ? data : (data?.results || []);
+    return results
+      .filter((m) => {
+        const type = (m.libtypbien || m.type_local || '').toLowerCase();
+        return typeLocal.toLowerCase() === 'maison' ? type.includes('maison') : type.includes('appartement');
+      })
+      .map((m) => ({
+        date_mutation: m.datemut || m.date_mutation,
+        valeur_fonciere: m.valeurfonc || m.valeur_fonciere,
+        surface_reelle_bati: m.sbati || m.surface_reelle_bati
+      }));
+  } catch (err) {
+    return [];
   }
 }
 
@@ -155,13 +184,25 @@ function summarizeTransactions(transactions, rayonUtilise) {
 // Stratégie : d'abord le code postal exact, puis si rien (secteur rural, peu de transactions),
 // élargit progressivement en rayon géographique (2km, 5km, 10km) autour de l'adresse géocodée.
 async function fetchDvfData(codePostal, typeLocal, localisationTexte) {
-  // 1. Tentative directe par code postal
+  // 0. Géocodage d'abord (nécessaire pour l'API officielle ET le repli en rayon)
+  const geo = await geocodeAddress(localisationTexte || codePostal);
+
+  // 1. Tentative sur l'API officielle Cerema (DVF+ open-data) via le code INSEE
+  if (geo?.codeInsee) {
+    const transactionsOfficiel = parseDvfTransactions(
+      (await fetchDvfOfficiel(geo.codeInsee, typeLocal)).map((p) => ({ properties: p }))
+    );
+    if (transactionsOfficiel.length >= 3) {
+      return summarizeTransactions(transactionsOfficiel, 'commune exacte (source officielle Cerema)');
+    }
+  }
+
+  // 2. Repli : API communautaire par code postal exact
   const urlCodePostal = `https://api.cquest.org/dvf?code_postal=${encodeURIComponent(codePostal)}&type_local=${encodeURIComponent(typeLocal)}`;
   let transactions = parseDvfTransactions(await queryDvfUrl(urlCodePostal));
   if (transactions.length >= 3) return summarizeTransactions(transactions, 'code postal exact');
 
-  // 2. Repli : géocoder l'adresse et élargir progressivement le rayon
-  const geo = await geocodeAddress(localisationTexte || codePostal);
+  // 3. Repli supplémentaire : élargir progressivement le rayon autour de l'adresse géocodée
   if (!geo) return summarizeTransactions(transactions, 'code postal exact');
 
   for (const dist of [2000, 5000, 10000]) {
@@ -271,7 +312,7 @@ ${dvfData.nombreTransactions} transactions trouvées. Prix/m² réel : médiane 
 Exemples de transactions récentes :
 ${dvfData.exemples.join('\n')}
 --- FIN DES DONNÉES DVF ---
-Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. Utilise-les comme référence principale dans "estimation_prix", et les annonces comparables comme complément sur la concurrence actuelle. Si la recherche a dû être élargie au-delà du code postal exact (rayon en km plutôt que "code postal exact"), précise-le brièvement dans "estimation_prix" (ex: "transactions élargies à X km, la commune précise ayant peu de ventes recensées"). Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement.`
+Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. Utilise-les comme référence principale dans "estimation_prix", et les annonces comparables comme complément sur la concurrence actuelle. Si la recherche a dû être élargie au-delà du code postal exact (rayon en km plutôt que "code postal exact"), précise-le brièvement dans "estimation_prix" (ex: "transactions élargies à X km, la commune précise ayant peu de ventes recensées") ET ajoute cette mise en garde si le bien est en zone frontalière (notamment proximité Luxembourg, Suisse, Allemagne — fréquent en Lorraine/Grand Est/Alsace) : la proximité immédiate d'une frontière augmente systématiquement les prix par rapport aux communes plus éloignées, à cause du pouvoir d'achat des travailleurs frontaliers. Une moyenne calculée sur un rayon élargi (5-10km) peut donc mélanger des communes à des distances très différentes de la frontière et donner un prix moyen peu représentatif — précise que ce facteur n'est pas isolé dans le calcul et invite à la prudence si le bien est particulièrement proche ou éloigné de la frontière par rapport aux transactions utilisées. Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement.`
         });
       } else if (mode === 'prix') {
         content.push({
