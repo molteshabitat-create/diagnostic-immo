@@ -115,6 +115,46 @@ function reliabilityClass(value) {
   return 'medium';
 }
 
+function PasteInstructions() {
+  return (
+    <div className="paste-instructions">
+      <div className="paste-steps">
+        <div className="paste-step">
+          <span className="paste-step-num">1</span>
+          <div className="keycap-row">
+            <span className="keycap">⊞ Win</span>
+            <span className="keycap-plus">+</span>
+            <span className="keycap">⇧ Maj</span>
+            <span className="keycap-plus">+</span>
+            <span className="keycap keycap-highlight">S</span>
+          </div>
+          <span className="paste-step-label">Capturez une zone de l'écran</span>
+        </div>
+        <span className="paste-arrow">→</span>
+        <div className="paste-step">
+          <span className="paste-step-num">2</span>
+          <div className="keycap-row">
+            <span className="keycap">Cliquez</span>
+            <span className="keycap-plus">sur</span>
+            <span className="keycap">une zone</span>
+          </div>
+          <span className="paste-step-label">ci-dessous pour l'activer</span>
+        </div>
+        <span className="paste-arrow">→</span>
+        <div className="paste-step">
+          <span className="paste-step-num">3</span>
+          <div className="keycap-row">
+            <span className="keycap">Ctrl</span>
+            <span className="keycap-plus">+</span>
+            <span className="keycap keycap-highlight">V</span>
+          </div>
+          <span className="paste-step-label">Collez directement</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScanDiagram() {
   return (
     <div className="scan-diagram">
@@ -652,6 +692,8 @@ export default function App() {
       )}
       <div className="form-card">
         <form onSubmit={handleSubmit} className="form">
+          <PasteInstructions />
+
           <div className="grid">
             <label>
               Nom de votre agence (optionnel)
@@ -694,7 +736,7 @@ export default function App() {
                   : `${photos.length} photo${photos.length > 1 ? 's' : ''} sélectionnée${photos.length > 1 ? 's' : ''}`}
               </span>
             </div>
-            <span className="paste-hint">📋 {pasteTarget === 'main' ? 'Zone active — faites Ctrl+V pour coller une capture' : 'Cliquez ici pour activer, puis Ctrl+V'}</span>
+            <span className="paste-hint">{pasteTarget === 'main' ? '✅ Zone active — collez maintenant (Ctrl+V)' : '👆 Cliquez ici pour choisir cette zone'}</span>
             {photos.length > 0 && (
               <div className="thumb-grid">
                 {photos.map((f, i) => (
@@ -743,7 +785,7 @@ export default function App() {
                       : `${slot.photos.length} photo${slot.photos.length > 1 ? 's' : ''}`}
                   </span>
                 </div>
-                <span className="paste-hint">📋 {pasteTarget === slotIndex ? 'Zone active — Ctrl+V pour coller' : 'Cliquez pour activer, puis Ctrl+V'}</span>
+                <span className="paste-hint">{pasteTarget === slotIndex ? '✅ Zone active — collez maintenant (Ctrl+V)' : '👆 Cliquez ici pour choisir cette zone'}</span>
                 {slot.photos.length > 0 && (
                   <div className="thumb-grid">
                     {slot.photos.map((f, i) => (
