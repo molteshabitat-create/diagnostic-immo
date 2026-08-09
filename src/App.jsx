@@ -140,6 +140,7 @@ function ScanDiagram() {
 
 export default function App() {
   const [photoRightsConfirmed, setPhotoRightsConfirmed] = useState(false);
+  const [mode, setMode] = useState('diagnostic'); // 'diagnostic' ou 'prix'
   const [chauffageOpen, setChauffageOpen] = useState(false);
   const [agentZoneOpen, setAgentZoneOpen] = useState(false);
   const [rafraichissementOpen, setRafraichissementOpen] = useState(false);
@@ -271,8 +272,8 @@ export default function App() {
 
     const hasAnnonce = form.annonce && form.annonce.trim().length > 0;
 
-    if (photos.length === 0 && !dpeFile && !hasAnnonce) {
-      setError('Ajoute au moins des photos, un DPE, ou le texte de l\'annonce pour lancer le diagnostic.');
+    if (photos.length === 0 && !dpeFile && !hasAnnonce && comparables.length === 0) {
+      setError('Ajoute au moins des photos, un DPE, des annonces comparables, ou le texte de l\'annonce pour lancer l\'analyse.');
       return;
     }
 
@@ -570,6 +571,29 @@ export default function App() {
       </div>
 
       <h2 className="section-title">Préparer le bien</h2>
+
+      <div className="mode-switch">
+        <button
+          type="button"
+          className={`mode-btn ${mode === 'diagnostic' ? 'mode-btn-active' : ''}`}
+          onClick={() => setMode('diagnostic')}
+        >
+          🏠 Diagnostic technique complet
+        </button>
+        <button
+          type="button"
+          className={`mode-btn ${mode === 'prix' ? 'mode-btn-active' : ''}`}
+          onClick={() => setMode('prix')}
+        >
+          💰 Estimation de prix seule
+        </button>
+      </div>
+      {mode === 'prix' && (
+        <p className="mode-hint">
+          Idéal pour relancer un vendeur qui bloque sur le prix — quelques infos de base et
+          des annonces comparables suffisent, sans repasser tout le diagnostic technique.
+        </p>
+      )}
       <div className="form-card">
         <form onSubmit={handleSubmit} className="form">
           <div className="grid">
@@ -585,45 +609,47 @@ export default function App() {
             </label>
           </div>
 
-          <label>
-            Photos du bien (optionnel, max 10)
-            <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques).</span>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handlePhotoChange}
-              id="photo-input"
-              className="file-input-hidden"
-            />
-            <div className="upload-zone">
-              <label htmlFor="photo-input" className="upload-btn">
-                Choisir des photos
-              </label>
-              <span className="upload-status">
-                {photos.length === 0
-                  ? 'Aucune photo sélectionnée'
-                  : `${photos.length} photo${photos.length > 1 ? 's' : ''} sélectionnée${photos.length > 1 ? 's' : ''}`}
-              </span>
-            </div>
-            {photos.length > 0 && (
-              <div className="thumb-grid">
-                {photos.map((f, i) => (
-                  <div key={i} className="thumb-item">
-                    <img src={URL.createObjectURL(f)} alt={f.name} />
-                    <button
-                      type="button"
-                      className="thumb-remove"
-                      onClick={() => removePhoto(i)}
-                      aria-label={`Retirer ${f.name}`}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+          {mode === 'diagnostic' && (
+            <label>
+              Photos du bien (optionnel, max 10)
+              <span className="hint">Idéalement prises en visite. Inclure une photo de la façade extérieure améliore nettement l'analyse (isolation, ponts thermiques).</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoChange}
+                id="photo-input"
+                className="file-input-hidden"
+              />
+              <div className="upload-zone">
+                <label htmlFor="photo-input" className="upload-btn">
+                  Choisir des photos
+                </label>
+                <span className="upload-status">
+                  {photos.length === 0
+                    ? 'Aucune photo sélectionnée'
+                    : `${photos.length} photo${photos.length > 1 ? 's' : ''} sélectionnée${photos.length > 1 ? 's' : ''}`}
+                </span>
               </div>
-            )}
-          </label>
+              {photos.length > 0 && (
+                <div className="thumb-grid">
+                  {photos.map((f, i) => (
+                    <div key={i} className="thumb-item">
+                      <img src={URL.createObjectURL(f)} alt={f.name} />
+                      <button
+                        type="button"
+                        className="thumb-remove"
+                        onClick={() => removePhoto(i)}
+                        aria-label={`Retirer ${f.name}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </label>
+          )}
 
           <label>
             Annonces comparables (optionnel, max 4)
@@ -663,7 +689,7 @@ export default function App() {
             )}
           </label>
 
-          {photos.length > 0 && (
+          {mode === 'diagnostic' && photos.length > 0 && (
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -674,34 +700,38 @@ export default function App() {
             </label>
           )}
 
-          <label>
-            DPE officiel (PDF ou photo, optionnel)
-            <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul (texte lu directement, jusqu'à 10 pages).</span>
-            <input
-              type="file"
-              accept="application/pdf,image/*"
-              onChange={handleDpeFileChange}
-              id="dpe-input"
-              className="file-input-hidden"
-            />
-            <div className="upload-zone">
-              <label htmlFor="dpe-input" className="upload-btn">Choisir un fichier</label>
-              <span className="upload-status">
-                {dpeFile ? dpeFile.name : 'Aucun fichier sélectionné'}
-              </span>
-            </div>
-          </label>
+          {mode === 'diagnostic' && (
+            <label>
+              DPE officiel (PDF ou photo, optionnel)
+              <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul (texte lu directement, jusqu'à 10 pages).</span>
+              <input
+                type="file"
+                accept="application/pdf,image/*"
+                onChange={handleDpeFileChange}
+                id="dpe-input"
+                className="file-input-hidden"
+              />
+              <div className="upload-zone">
+                <label htmlFor="dpe-input" className="upload-btn">Choisir un fichier</label>
+                <span className="upload-status">
+                  {dpeFile ? dpeFile.name : 'Aucun fichier sélectionné'}
+                </span>
+              </div>
+            </label>
+          )}
 
-          <label>
-            Texte de l'annonce (optionnel)
-            <span className="hint">Copiez-collez la description pour affiner l'analyse</span>
-            <textarea
-              name="annonce"
-              value={form.annonce}
-              onChange={handleFormChange}
-              placeholder="Collez ici le texte de l'annonce..."
-            />
-          </label>
+          {mode === 'diagnostic' && (
+            <label>
+              Texte de l'annonce (optionnel)
+              <span className="hint">Copiez-collez la description pour affiner l'analyse</span>
+              <textarea
+                name="annonce"
+                value={form.annonce}
+                onChange={handleFormChange}
+                placeholder="Collez ici le texte de l'annonce..."
+              />
+            </label>
+          )}
 
           <div className="grid">
             <label>
@@ -744,31 +774,36 @@ export default function App() {
               <span className="hint">Extrait automatiquement si vous joignez un DPE</span>
               <input name="dpe" value={form.dpe} onChange={handleFormChange} placeholder="ex : D" />
             </label>
-            <label>
-              Type de ventilation (si connu)
-              <select name="ventilation_declaree" value={form.ventilation_declaree} onChange={handleFormChange}>
-                <option value="">Sélectionner…</option>
-                <option value="VMC simple flux">VMC simple flux</option>
-                <option value="VMC double flux">VMC double flux</option>
-                <option value="Ventilation naturelle">Ventilation naturelle</option>
-                <option value="Je ne sais pas">Je ne sais pas</option>
-              </select>
-            </label>
-            <label>
-              Production d'eau chaude (si connue)
-              <select name="production_eau_chaude" value={form.production_eau_chaude} onChange={handleFormChange}>
-                <option value="">Sélectionner…</option>
-                <option value="Ballon électrique (cumulus)">Ballon électrique (cumulus)</option>
-                <option value="Chauffe-eau thermodynamique">Chauffe-eau thermodynamique</option>
-                <option value="Chauffe-eau solaire">Chauffe-eau solaire</option>
-                <option value="Couplée à une chaudière gaz">Couplée à une chaudière gaz</option>
-                <option value="Couplée à une chaudière fioul">Couplée à une chaudière fioul</option>
-                <option value="Couplée à une PAC">Couplée à une PAC</option>
-                <option value="Je ne sais pas">Je ne sais pas</option>
-              </select>
-            </label>
+            {mode === 'diagnostic' && (
+              <label>
+                Type de ventilation (si connu)
+                <select name="ventilation_declaree" value={form.ventilation_declaree} onChange={handleFormChange}>
+                  <option value="">Sélectionner…</option>
+                  <option value="VMC simple flux">VMC simple flux</option>
+                  <option value="VMC double flux">VMC double flux</option>
+                  <option value="Ventilation naturelle">Ventilation naturelle</option>
+                  <option value="Je ne sais pas">Je ne sais pas</option>
+                </select>
+              </label>
+            )}
+            {mode === 'diagnostic' && (
+              <label>
+                Production d'eau chaude (si connue)
+                <select name="production_eau_chaude" value={form.production_eau_chaude} onChange={handleFormChange}>
+                  <option value="">Sélectionner…</option>
+                  <option value="Ballon électrique (cumulus)">Ballon électrique (cumulus)</option>
+                  <option value="Chauffe-eau thermodynamique">Chauffe-eau thermodynamique</option>
+                  <option value="Chauffe-eau solaire">Chauffe-eau solaire</option>
+                  <option value="Couplée à une chaudière gaz">Couplée à une chaudière gaz</option>
+                  <option value="Couplée à une chaudière fioul">Couplée à une chaudière fioul</option>
+                  <option value="Couplée à une PAC">Couplée à une PAC</option>
+                  <option value="Je ne sais pas">Je ne sais pas</option>
+                </select>
+              </label>
+            )}
           </div>
 
+          {mode === 'diagnostic' && (
           <div className="collapsible">
             <button
               type="button"
@@ -796,7 +831,9 @@ export default function App() {
               </div>
             )}
           </div>
+          )}
 
+          {mode === 'diagnostic' && (
           <div className="collapsible">
             <button
               type="button"
@@ -824,6 +861,7 @@ export default function App() {
               </div>
             )}
           </div>
+          )}
 
           <div className="grid">
             <label className="checkbox-label">
@@ -856,7 +894,7 @@ export default function App() {
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Analyse en cours…' : 'Obtenir mes réponses'}
+            {loading ? 'Analyse en cours…' : mode === 'prix' ? 'Estimer le prix' : 'Obtenir mes réponses'}
           </button>
 
           {loading && (

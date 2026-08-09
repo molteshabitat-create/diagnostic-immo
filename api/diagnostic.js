@@ -98,9 +98,10 @@ export default async function handler(req, res) {
   const hasDpeText = dpeText && typeof dpeText === 'string' && dpeText.trim().length > 0;
   const hasDpe = hasDpeImages || hasDpeText;
   const hasAnnonce = form?.annonce && form.annonce.trim().length > 0;
+  const hasComparablesCheck = comparablesImages && Array.isArray(comparablesImages) && comparablesImages.length > 0;
 
-  if (!hasImages && !hasDpe && !hasAnnonce) {
-    return res.status(400).json({ error: 'Aucune donnée reçue (photos, DPE ou texte d\'annonce requis)' });
+  if (!hasImages && !hasDpe && !hasAnnonce && !hasComparablesCheck) {
+    return res.status(400).json({ error: 'Aucune donnée reçue (photos, DPE, comparables ou texte d\'annonce requis)' });
   }
 
   try {

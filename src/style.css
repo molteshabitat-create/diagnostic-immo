@@ -230,6 +230,39 @@ body {
   margin: 0 0 18px;
 }
 
+.mode-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.mode-btn {
+  flex: 1;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  text-align: center;
+}
+.mode-btn-active {
+  border-color: var(--blueprint);
+  background: #E4EBF2;
+  color: var(--blueprint);
+  font-weight: 600;
+}
+.mode-hint {
+  font-size: 13px;
+  color: var(--ink-dim);
+  font-style: italic;
+  margin: 0 0 20px;
+}
+
 /* ===== Form ===== */
 .form-card {
   background: var(--surface);
