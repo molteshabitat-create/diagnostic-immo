@@ -96,13 +96,22 @@ async function geocodeAddress(query) {
     const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=1`;
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error('[DVF-DEBUG] Géocodage BAN échec HTTP', res.status, url);
+      return null;
+    }
     const data = await res.json();
     const feature = data?.features?.[0];
-    if (!feature) return null;
+    if (!feature) {
+      console.error('[DVF-DEBUG] Géocodage BAN : aucun résultat pour', query);
+      return null;
+    }
     const [lon, lat] = feature.geometry.coordinates;
-    return { lat, lon, codeInsee: feature.properties?.citycode || null };
+    const codeInsee = feature.properties?.citycode || null;
+    console.error('[DVF-DEBUG] Géocodage OK', { query, lat, lon, codeInsee });
+    return { lat, lon, codeInsee };
   } catch (err) {
+    console.error('[DVF-DEBUG] Géocodage BAN exception', err.message);
     return null;
   }
 }
@@ -144,33 +153,47 @@ async function fetchDvfCsvCommune(codeInsee, typeLocal) {
       const url = `https://files.data.gouv.fr/geo-dvf/latest/csv/${year}/communes/${dept}/${codeInsee}.csv`;
       const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timeout);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        console.error('[DVF-DEBUG] CSV échec HTTP', res.status, url);
+        continue;
+      }
       const text = await res.text();
       const lines = text.split('\n').filter((l) => l.trim().length > 0);
-      if (lines.length < 2) continue;
+      if (lines.length < 2) {
+        console.error('[DVF-DEBUG] CSV vide ou trop court', url, 'lignes:', lines.length);
+        continue;
+      }
 
       const headers = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase());
       const idxValeur = headers.indexOf('valeur_fonciere');
       const idxSurface = headers.indexOf('surface_reelle_bati');
       const idxType = headers.indexOf('type_local');
       const idxDate = headers.indexOf('date_mutation');
-      if (idxValeur === -1 || idxSurface === -1 || idxType === -1) continue;
+      if (idxValeur === -1 || idxSurface === -1 || idxType === -1) {
+        console.error('[DVF-DEBUG] Colonnes attendues introuvables dans le CSV, headers reçus:', headers);
+        continue;
+      }
 
+      let matchedThisYear = 0;
       for (let i = 1; i < lines.length; i++) {
         const cols = parseCsvLine(lines[i]);
         const type = (cols[idxType] || '').toLowerCase();
         const matchType = typeLocal.toLowerCase() === 'maison' ? type.includes('maison') : type.includes('appartement');
         if (!matchType) continue;
+        matchedThisYear++;
         allTransactions.push({
           date_mutation: cols[idxDate],
           valeur_fonciere: parseFloat(cols[idxValeur]),
           surface_reelle_bati: parseFloat(cols[idxSurface])
         });
       }
+      console.error('[DVF-DEBUG] Année', year, ': CSV lu OK,', lines.length - 1, 'lignes totales,', matchedThisYear, `correspondant à "${typeLocal}"`);
     } catch (err) {
+      console.error('[DVF-DEBUG] Exception année', year, ':', err.message);
       continue; // année indisponible ou erreur réseau, on continue avec l'année suivante
     }
   }
+  console.error('[DVF-DEBUG] Total transactions officielles trouvées:', allTransactions.length);
   return allTransactions;
 }
 
