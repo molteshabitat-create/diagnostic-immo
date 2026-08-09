@@ -91,14 +91,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
-  const { images, form, dpeImages, dpeText, comparablesImages } = req.body || {};
+  const { images, form, dpeImages, dpeText, comparablesData } = req.body || {};
 
   const hasImages = images && Array.isArray(images) && images.length > 0;
   const hasDpeImages = dpeImages && Array.isArray(dpeImages) && dpeImages.length > 0;
   const hasDpeText = dpeText && typeof dpeText === 'string' && dpeText.trim().length > 0;
   const hasDpe = hasDpeImages || hasDpeText;
   const hasAnnonce = form?.annonce && form.annonce.trim().length > 0;
-  const hasComparablesCheck = (comparablesImages && Array.isArray(comparablesImages) && comparablesImages.length > 0) || (form?.comparables_texte && form.comparables_texte.trim().length > 0);
+  const validComparables = Array.isArray(comparablesData)
+    ? comparablesData.filter((c) => (c.images && c.images.length > 0) || (c.texte && c.texte.trim().length > 0))
+    : [];
+  const hasComparablesCheck = validComparables.length > 0;
 
   if (!hasImages && !hasDpe && !hasAnnonce && !hasComparablesCheck) {
     return res.status(400).json({ error: 'Aucune donnée reçue (photos, DPE, comparables ou texte d\'annonce requis)' });
@@ -127,8 +130,6 @@ export default async function handler(req, res) {
       });
     }
 
-    const hasComparables = comparablesImages && Array.isArray(comparablesImages) && comparablesImages.length > 0;
-
     content.push(
       ...(images || []).map((img) => ({
         type: 'image',
@@ -140,22 +141,28 @@ export default async function handler(req, res) {
       }))
     );
 
-    if (hasComparables) {
+    if (validComparables.length > 0) {
       content.push({
         type: 'text',
-        text: "--- DÉBUT DES CAPTURES D'ANNONCES COMPARABLES : ce sont D'AUTRES biens du même secteur, PAS le bien diagnostiqué ci-dessus. Ne les mélange jamais avec les photos du bien analysé. Utilise-les uniquement pour la comparaison de prix demandée dans 'estimation_prix'. ---"
+        text: "--- DÉBUT DES ANNONCES COMPARABLES : ce sont D'AUTRES biens du même secteur, PAS le bien diagnostiqué ci-dessus. Ne les mélange jamais avec les photos/infos du bien analysé. Chaque bien comparable ci-dessous regroupe sa/ses propre(s) photo(s) ET sa propre description texte — ne mélange pas les infos d'un bien comparable avec un autre. Utilise l'ensemble uniquement pour la comparaison de prix demandée dans 'estimation_prix'. ---"
       });
-      comparablesImages.forEach((img) => {
-        content.push({
-          type: 'image',
-          source: {
-            type: 'base64',
-            media_type: img.media_type || 'image/jpeg',
-            data: img.data
-          }
+      validComparables.forEach((comp, idx) => {
+        content.push({ type: 'text', text: `--- Bien comparable n°${idx + 1} ---` });
+        (comp.images || []).forEach((img) => {
+          content.push({
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: img.media_type || 'image/jpeg',
+              data: img.data
+            }
+          });
         });
+        if (comp.texte && comp.texte.trim().length > 0) {
+          content.push({ type: 'text', text: `Description du bien comparable n°${idx + 1} :\n"""${comp.texte}"""` });
+        }
       });
-      content.push({ type: 'text', text: '--- FIN DES CAPTURES COMPARABLES ---' });
+      content.push({ type: 'text', text: '--- FIN DES ANNONCES COMPARABLES ---' });
     }
 
     content.push(
@@ -177,7 +184,7 @@ Infos déclarées sur le bien :
 - Système(s) de rafraîchissement déclaré(s) : ${form?.systeme_rafraichissement && form.systeme_rafraichissement.length > 0 ? form.systeme_rafraichissement.join(', ') : 'non renseigné'}
 - Piscine sur le terrain : ${form?.piscine ? 'oui' : 'non déclarée'}
 - Panneaux solaires installés : ${form?.panneaux_solaires ? 'oui' : 'non déclarés'}
-${hasDpeText ? "\nLe texte du document DPE officiel a été fourni intégralement ci-dessus : utilise les données qu'il contient en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : hasDpeImages ? "\nLes premières images fournies (avant les photos du bien) sont issues d'un document DPE officiel (PDF converti en images ou photo) : utilise les données qu'elles contiennent en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur (le bien diagnostiqué) :\n"""${form.annonce}"""\n` : ''}${form?.comparables_texte ? `\nDescriptions textuelles des annonces COMPARABLES (autres biens du secteur, PAS le bien diagnostiqué) fournies par l'utilisateur :\n"""${form.comparables_texte}"""\nUtilise ce texte en complément des captures d'écran comparables pour affiner "estimation_prix" (état des biens comparables, mentions de rénovation, etc.).\n` : ''}
+${hasDpeText ? "\nLe texte du document DPE officiel a été fourni intégralement ci-dessus : utilise les données qu'il contient en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : hasDpeImages ? "\nLes premières images fournies (avant les photos du bien) sont issues d'un document DPE officiel (PDF converti en images ou photo) : utilise les données qu'elles contiennent en PRIORITÉ sur le champ DPE déclaré manuellement ci-dessous, qui peut être imprécis ou erroné.\n" : ''}${form?.annonce ? `\nTexte de l'annonce fourni par l'utilisateur (le bien diagnostiqué) :\n"""${form.annonce}"""\n` : ''}
 Analyse les photos, le document DPE si fourni, et le texte de l'annonce si fourni (en gardant un œil critique : les annonces enjolivent parfois la réalité) et fournis le diagnostic au format JSON demandé.`
       }
     );

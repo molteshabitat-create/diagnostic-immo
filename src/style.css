@@ -386,6 +386,51 @@ textarea { resize: vertical; min-height: 80px; }
   cursor: pointer;
 }
 
+.comparables-block {
+  margin-bottom: 18px;
+}
+.comparables-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+.comparables-intro {
+  margin: 0 0 12px;
+}
+.comparable-slot {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.comparable-slot-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--blueprint);
+  margin: 0 0 8px;
+}
+.comparable-textarea {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 13.5px;
+  font-family: var(--font-body);
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 60px;
+  resize: vertical;
+}
+.comparable-textarea:focus {
+  outline: 2px solid var(--blueprint);
+  outline-offset: 1px;
+}
+
 .checkbox-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

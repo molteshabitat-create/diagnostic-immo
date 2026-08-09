@@ -146,7 +146,13 @@ export default function App() {
   const [rafraichissementOpen, setRafraichissementOpen] = useState(false);
   const [dpeFile, setDpeFile] = useState(null);
   const [photos, setPhotos] = useState([]);
-  const [comparables, setComparables] = useState([]);
+  const [comparableSlots, setComparableSlots] = useState([
+    { photos: [], texte: '' },
+    { photos: [], texte: '' },
+    { photos: [], texte: '' },
+    { photos: [], texte: '' },
+    { photos: [], texte: '' }
+  ]);
   const [form, setForm] = useState({
     periode_construction: '',
     annee_exacte: '',
@@ -162,7 +168,6 @@ export default function App() {
     chauffage: [],
     dpe: '',
     annonce: '',
-    comparables_texte: '',
     nom_agence: '',
     reference_bien: ''
   });
@@ -181,13 +186,25 @@ export default function App() {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleComparablesChange = (e) => {
-    const files = Array.from(e.target.files).slice(0, 4);
-    setComparables(files);
+  const handleSlotPhotoChange = (slotIndex, e) => {
+    const files = Array.from(e.target.files).slice(0, 1);
+    setComparableSlots((prev) =>
+      prev.map((slot, i) => (i === slotIndex ? { ...slot, photos: files } : slot))
+    );
   };
 
-  const removeComparable = (index) => {
-    setComparables((prev) => prev.filter((_, i) => i !== index));
+  const removeSlotPhoto = (slotIndex, photoIndex) => {
+    setComparableSlots((prev) =>
+      prev.map((slot, i) =>
+        i === slotIndex ? { ...slot, photos: slot.photos.filter((_, pi) => pi !== photoIndex) } : slot
+      )
+    );
+  };
+
+  const handleSlotTexteChange = (slotIndex, value) => {
+    setComparableSlots((prev) =>
+      prev.map((slot, i) => (i === slotIndex ? { ...slot, texte: value } : slot))
+    );
   };
 
   const handleDpeFileChange = (e) => {
@@ -272,8 +289,11 @@ export default function App() {
     setResult(null);
 
     const hasAnnonce = form.annonce && form.annonce.trim().length > 0;
+    const hasAnyComparable = comparableSlots.some(
+      (slot) => slot.photos.length > 0 || slot.texte.trim().length > 0
+    );
 
-    if (photos.length === 0 && !dpeFile && !hasAnnonce && comparables.length === 0) {
+    if (photos.length === 0 && !dpeFile && !hasAnnonce && !hasAnyComparable) {
       setError('Ajoute au moins des photos, un DPE, des annonces comparables, ou le texte de l\'annonce pour lancer l\'analyse.');
       return;
     }
@@ -292,11 +312,18 @@ export default function App() {
         }))
       );
 
-      const comparablesImages = await Promise.all(
-        comparables.map(async (file) => ({
-          media_type: 'image/jpeg',
-          data: await compressImage(file)
-        }))
+      const comparablesData = await Promise.all(
+        comparableSlots
+          .filter((slot) => slot.photos.length > 0 || slot.texte.trim().length > 0)
+          .map(async (slot) => ({
+            texte: slot.texte,
+            images: await Promise.all(
+              slot.photos.map(async (file) => ({
+                media_type: 'image/jpeg',
+                data: await compressImage(file)
+              }))
+            )
+          }))
       );
 
       let dpeImages = [];
@@ -319,7 +346,7 @@ export default function App() {
       const res = await fetch('/api/diagnostic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images, form, dpeImages, dpeText, comparablesImages })
+        body: JSON.stringify({ images, form, dpeImages, dpeText, comparablesData })
       });
 
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
@@ -650,54 +677,57 @@ export default function App() {
             )}
           </label>
 
-          <label>
-            Annonces comparables (optionnel, max 4)
-            <span className="hint">Captures d'écran de 2-4 annonces similaires du même secteur (Leboncoin, SeLoger...) pour positionner le prix.</span>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleComparablesChange}
-              id="comparables-input"
-              className="file-input-hidden"
-            />
-            <div className="upload-zone">
-              <label htmlFor="comparables-input" className="upload-btn">Choisir des captures</label>
-              <span className="upload-status">
-                {comparables.length === 0
-                  ? 'Aucune capture sélectionnée'
-                  : `${comparables.length} capture${comparables.length > 1 ? 's' : ''} sélectionnée${comparables.length > 1 ? 's' : ''}`}
-              </span>
-            </div>
-            {comparables.length > 0 && (
-              <div className="thumb-grid">
-                {comparables.map((f, i) => (
-                  <div key={i} className="thumb-item">
-                    <img src={URL.createObjectURL(f)} alt={f.name} />
-                    <button
-                      type="button"
-                      className="thumb-remove"
-                      onClick={() => removeComparable(i)}
-                      aria-label={`Retirer ${f.name}`}
-                    >
-                      ×
-                    </button>
+          <div className="comparables-block">
+            <h3 className="comparables-title">Annonces comparables (optionnel)</h3>
+            <p className="hint comparables-intro">
+              Jusqu'à 5 biens du même secteur — une photo (la fiche prix/résumé) et une description pour chacun.
+            </p>
+            {comparableSlots.map((slot, slotIndex) => (
+              <div key={slotIndex} className="comparable-slot">
+                <h4 className="comparable-slot-title">Bien comparable n°{slotIndex + 1}</h4>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleSlotPhotoChange(slotIndex, e)}
+                  id={`comparable-input-${slotIndex}`}
+                  className="file-input-hidden"
+                />
+                <div className="upload-zone">
+                  <label htmlFor={`comparable-input-${slotIndex}`} className="upload-btn">
+                    Choisir la photo
+                  </label>
+                  <span className="upload-status">
+                    {slot.photos.length === 0
+                      ? 'Aucune photo'
+                      : `${slot.photos.length} photo${slot.photos.length > 1 ? 's' : ''}`}
+                  </span>
+                </div>
+                {slot.photos.length > 0 && (
+                  <div className="thumb-grid">
+                    {slot.photos.map((f, i) => (
+                      <div key={i} className="thumb-item">
+                        <img src={URL.createObjectURL(f)} alt={f.name} />
+                        <button
+                          type="button"
+                          className="thumb-remove"
+                          onClick={() => removeSlotPhoto(slotIndex, i)}
+                          aria-label={`Retirer ${f.name}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                <textarea
+                  value={slot.texte}
+                  onChange={(e) => handleSlotTexteChange(slotIndex, e.target.value)}
+                  placeholder="Description de ce bien comparable (optionnel)..."
+                  className="comparable-textarea"
+                />
               </div>
-            )}
-          </label>
-
-          <label>
-            Descriptions des annonces comparables (optionnel)
-            <span className="hint">Collez le texte de description de chaque annonce comparable (état, rénovation...) — la capture seule ne montre souvent que le prix, pas le détail.</span>
-            <textarea
-              name="comparables_texte"
-              value={form.comparables_texte}
-              onChange={handleFormChange}
-              placeholder="Collez ici la description de chaque annonce comparable, l'une après l'autre..."
-            />
-          </label>
+            ))}
+          </div>
 
           {mode === 'diagnostic' && photos.length > 0 && (
             <label className="checkbox-label">
