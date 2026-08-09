@@ -421,7 +421,7 @@ export default function App() {
       const res = await fetch('/api/diagnostic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images, form, dpeImages, dpeText, comparablesData })
+        body: JSON.stringify({ images, form, dpeImages, dpeText, comparablesData, mode })
       });
 
       if (!res.ok) throw new Error(`Erreur serveur (${res.status})`);
@@ -559,14 +559,16 @@ export default function App() {
       (result.points_vigilance || []).map((p) => `• ${p}`).join('\n'),
       { boxColor: [243, 227, 216], titleColor: HEAT }
     );
-    const budgetPostesText =
-      result.budget_postes && result.budget_postes.length > 0
-        ? '\n\n' + result.budget_postes.map((p) => `• ${p.poste} : ${p.montant}`).join('\n')
-        : '';
-    addSection(
-      'Budget rénovation estimé',
-      `${result.budget_estime || ''}\n${result.budget_detail || ''}${budgetPostesText}`
-    );
+    if (result.budget_estime) {
+      const budgetPostesText =
+        result.budget_postes && result.budget_postes.length > 0
+          ? '\n\n' + result.budget_postes.map((p) => `• ${p.poste} : ${p.montant}`).join('\n')
+          : '';
+      addSection(
+        'Budget rénovation estimé',
+        `${result.budget_estime}\n${result.budget_detail || ''}${budgetPostesText}`
+      );
+    }
     if (result.cout_fonctionnement_annuel) {
       addSection(
         'Coût de fonctionnement annuel estimé',
@@ -1050,13 +1052,22 @@ export default function App() {
             </div>
           )}
 
-          {!result.verdict_global && !result.enveloppe_thermique && !result.estimation_prix && !result.budget_estime && (
-            <p className="empty-report-note">
-              L'analyse n'a pas pu produire de résultat exploitable avec les données fournies —
-              essaie d'ajouter des photos, un DPE ou des annonces comparables, puis relance.
-            </p>
-          )}
+          {mode === 'prix'
+            ? !result.verdict_global && !result.estimation_prix && (
+                <p className="empty-report-note">
+                  L'estimation n'a pas pu être générée avec les données fournies —
+                  ajoute au moins une annonce comparable (photo ou description), puis relance.
+                </p>
+              )
+            : !result.verdict_global && !result.enveloppe_thermique && !result.estimation_prix && !result.budget_estime && (
+                <p className="empty-report-note">
+                  L'analyse n'a pas pu produire de résultat exploitable avec les données fournies —
+                  essaie d'ajouter des photos, un DPE ou des annonces comparables, puis relance.
+                </p>
+              )}
 
+          {mode === 'diagnostic' && (
+            <>
           {result.analyse_annonce && (
             <div className="section annonce">
               <h3>Analyse du texte de l'annonce</h3>
@@ -1071,38 +1082,48 @@ export default function App() {
               )}
             </div>
           )}
-          <div className="section">
-            <h3>Enveloppe thermique</h3>
-            <p>{result.enveloppe_thermique}</p>
-          </div>
-          <div className="section">
-            <h3>Chauffage / Ventilation</h3>
-            <p>{result.chauffage_ventilation}</p>
-          </div>
-          <div className="section vigilance">
-            <h3>Points de vigilance</h3>
-            <ul>
-              {(result.points_vigilance || []).map((p, i) => <li key={i}>{p}</li>)}
-            </ul>
-          </div>
-          <div className="section budget">
-            <h3>Budget rénovation estimé</h3>
-            <span className="value">{result.budget_estime}</span>
-            <p>{result.budget_detail}</p>
-            {result.budget_postes && result.budget_postes.length > 0 && (
-              <table className="budget-table">
-                <tbody>
-                  {result.budget_postes.map((p, i) => (
-                    <tr key={i}>
-                      <td>{p.poste}</td>
-                      <td>{p.montant}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-          {result.cout_fonctionnement_annuel && (
+          {result.enveloppe_thermique && (
+            <div className="section">
+              <h3>Enveloppe thermique</h3>
+              <p>{result.enveloppe_thermique}</p>
+            </div>
+          )}
+          {result.chauffage_ventilation && (
+            <div className="section">
+              <h3>Chauffage / Ventilation</h3>
+              <p>{result.chauffage_ventilation}</p>
+            </div>
+          )}
+          {result.points_vigilance && result.points_vigilance.length > 0 && (
+            <div className="section vigilance">
+              <h3>Points de vigilance</h3>
+              <ul>
+                {result.points_vigilance.map((p, i) => <li key={i}>{p}</li>)}
+              </ul>
+            </div>
+          )}
+          {result.budget_estime && (
+            <div className="section budget">
+              <h3>Budget rénovation estimé</h3>
+              <span className="value">{result.budget_estime}</span>
+              <p>{result.budget_detail}</p>
+              {result.budget_postes && result.budget_postes.length > 0 && (
+                <table className="budget-table">
+                  <tbody>
+                    {result.budget_postes.map((p, i) => (
+                      <tr key={i}>
+                        <td>{p.poste}</td>
+                        <td>{p.montant}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+            </>
+          )}
+          {result.cout_fonctionnement_annuel && mode === 'diagnostic' && (
             <div className="section cout-annuel">
               <h3>Coût de fonctionnement annuel estimé</h3>
               <span className="value">{result.cout_fonctionnement_annuel}</span>
@@ -1115,7 +1136,7 @@ export default function App() {
               <p>{result.estimation_prix}</p>
             </div>
           )}
-          {((result.arguments_negociation && result.arguments_negociation.length > 0) ||
+          {mode === 'diagnostic' && ((result.arguments_negociation && result.arguments_negociation.length > 0) ||
             (result.questions_reponses && result.questions_reponses.length > 0)) && (
             <div className="agent-zone">
               <button
@@ -1153,10 +1174,12 @@ export default function App() {
               )}
             </div>
           )}
-          <div className="section">
-            <h3>Score de transparence</h3>
-            <p>{result.score_transparence}</p>
-          </div>
+          {mode === 'diagnostic' && result.score_transparence && (
+            <div className="section">
+              <h3>Score de transparence</h3>
+              <p>{result.score_transparence}</p>
+            </div>
+          )}
 
           <div className="pdf-buttons">
             <button onClick={() => downloadPdf('agent')} className="secondary">
