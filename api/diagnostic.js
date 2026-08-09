@@ -286,6 +286,13 @@ export default async function handler(req, res) {
 
   const { images, form, dpeImages, dpeText, comparablesData, mode } = req.body || {};
 
+  console.error('[DVF-DEBUG] === HANDLER APPELÉ ===', {
+    mode,
+    localisation: form?.localisation,
+    type_bien: form?.type_bien,
+    version: 'debug-v2'
+  });
+
   const hasImages = images && Array.isArray(images) && images.length > 0;
   const hasDpeImages = dpeImages && Array.isArray(dpeImages) && dpeImages.length > 0;
   const hasDpeText = dpeText && typeof dpeText === 'string' && dpeText.trim().length > 0;
