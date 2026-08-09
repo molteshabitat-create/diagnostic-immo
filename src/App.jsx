@@ -682,7 +682,8 @@ export default function App() {
             />
             <div
               className={`upload-zone ${pasteTarget === 'main' ? 'upload-zone-active' : ''}`}
-              onClick={() => setPasteTarget('main')}
+              tabIndex="0"
+              onClick={(e) => { setPasteTarget('main'); e.currentTarget.focus(); }}
             >
               <label htmlFor="photo-input" className="upload-btn">
                 Choisir des photos
@@ -730,7 +731,8 @@ export default function App() {
                 />
                 <div
                   className={`upload-zone ${pasteTarget === slotIndex ? 'upload-zone-active' : ''}`}
-                  onClick={() => setPasteTarget(slotIndex)}
+                  tabIndex="0"
+                  onClick={(e) => { setPasteTarget(slotIndex); e.currentTarget.focus(); }}
                 >
                   <label htmlFor={`comparable-input-${slotIndex}`} className="upload-btn">
                     Choisir la photo
