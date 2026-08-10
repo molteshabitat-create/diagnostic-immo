@@ -208,6 +208,7 @@ export default function App() {
     chauffage: [],
     dpe: '',
     annonce: '',
+    caracteristiques_complementaires: '',
     nom_agence: '',
     reference_bien: ''
   });
@@ -868,6 +869,17 @@ export default function App() {
               value={form.annonce}
               onChange={handleFormChange}
               placeholder="Collez ici le texte de l'annonce..."
+            />
+          </label>
+
+          <label>
+            Caractéristiques complémentaires (optionnel)
+            <span className="hint">Tout détail que vous connaissez et qui n'est pas dans l'annonce ni les champs ci-dessous : type d'enduit, terrasse sur plot (matériau), filtration eau potable, façade à refaire, etc.</span>
+            <textarea
+              name="caracteristiques_complementaires"
+              value={form.caracteristiques_complementaires}
+              onChange={handleFormChange}
+              placeholder="Ex : enduit taloché filet (plus durable, limite les fissures), terrasse sur plots PVC, filtration eau potable installée, façade nord à refaire (non mentionné dans l'annonce)..."
             />
           </label>
 
