@@ -62,7 +62,7 @@ Règles impératives :
 5) APRÈS AVOIR DÉTERMINÉ LE POINT D'ANCRAGE (prix/m² × surface), applique SYSTÉMATIQUEMENT cette checklist dans l'ordre, un point après l'autre — ne saute AUCUN point qui s'applique à ce bien, même si le texte final doit rester concis (résume plusieurs points en une phrase si besoin, mais n'en ignore aucun dans ton raisonnement) :
   a) DPE favorable (A/B vs secteur en C-D) : prime de +7% à +15% (études Notaires de France, "valeur verte"). Ne l'applique que si point de comparaison DPE clair.
   b) DPE défavorable (E/F, menuiseries/isolation à refaire) : jamais un simple pourcentage, et JAMAIS "à prévoir"/"devis à faire" sans montant — CHIFFRE un montant précis et SOUSTRAIS-le explicitement du point d'ancrage, même en fourchette. Réutilise ces fourchettes (à multiplier par la surface réelle du bien / 100-150m² si le bien est notablement plus grand) : menuiseries 8 000€-15 000€ ; VMC 1 500€-4 000€ ; isolation combles 15€-40€/m² (perdus) ou 35€-85€/m² (aménageables) ; sols à refaire 60€-150€/m² si dégradés/très datés. INTERDICTION de laisser ce poste vague ("fenêtres à prévoir" sans chiffre) — un montant doit obligatoirement apparaître.
-  c) Cuisine/salle de bain — repère sur les PHOTOS déjà fournies le niveau de vétusté et distingue bien selon l'IMPACT réel sur le budget de l'acheteur : (A) daté mais fonctionnel/entretenu (carrelage ancien mais propre, sanitaires vieillots mais qui marchent, pas de dégradation visible) → ce n'est PAS une dépense forcée immédiate pour l'acheteur, qui peut vivre avec pendant des années. Traite ça comme un simple facteur qualitatif de désirabilité (nudge vers le bas de la fourchette déjà calculée), PAS comme une ligne de déduction ferme obligatoire de 8 000€-12 000€ — mentionne-le brièvement sans en faire un poste de calcul séparé, sauf si le bien vise explicitement un acheteur voulant du "clé en main" moderne. (B) figé depuis la construction ET signes de dégradation réelle (carrelage fissuré/décollé, sanitaires tachés/endommagés, moisissures, plomberie visiblement fuyante) OU cas où l'électricité/plomberie sous-jacente est clairement obsolète et dangereuse → là seulement, chiffre une vraie déduction : 800€-2000€/m² pour chaque salle de bain concernée, 500€-1500€/m² pour la cuisine, pouvant atteindre 40 000€-80 000€ sur une grande maison. Le simple fait d'être "démodé" (couleurs, style) ne suffit pas à justifier (B) — il faut un vrai signe de dysfonctionnement ou de risque, pas juste un style dépassé. Si des photos ont été fournies, tranche maintenant (A ou B) plutôt que de reporter "après visite".
+  c) Cuisine/salle de bain — SIGNAL PRIORITAIRE : si "Rénovation esthétique à prévoir" est coché par l'agent, traite-le comme un fait CONFIRMÉ et chiffre-le systématiquement (ne saute jamais ce point si cette case est cochée), même si les photos ne le montrent pas clairement. Si la case n'est pas cochée, repère sur les PHOTOS le niveau de vétusté et distingue selon l'IMPACT réel sur le budget de l'acheteur : (A) daté mais fonctionnel/entretenu (carrelage ancien mais propre, sanitaires vieillots mais qui marchent, pas de dégradation visible) → ce n'est PAS une dépense forcée immédiate, traite ça comme un simple facteur qualitatif de désirabilité (nudge vers le bas de la fourchette), PAS comme une déduction ferme de 8 000€-12 000€. (B) figé depuis la construction ET signes de dégradation réelle (fissuré/décollé, taché/endommagé, moisissures, fuite) OU électricité/plomberie clairement obsolète et dangereuse → chiffre une vraie déduction : 800€-2000€/m² par salle de bain, 500€-1500€/m² pour la cuisine, pouvant atteindre 40 000€-80 000€ sur une grande maison. Le simple fait d'être "démodé" ne suffit pas à justifier (B) sans la case cochée — il faut un vrai signe de dysfonctionnement. Si des photos ont été fournies, tranche maintenant plutôt que de reporter "après visite".
   d) Écart d'âge de construction (10-15 ans+ vs le point d'ancrage), INDÉPENDANT du DPE : argument de positionnement distinct à mentionner explicitement, pas juste sous-entendu via le DPE.
   e) Statut mitoyen : le DVF ne distingue PAS mitoyen/individuel dans ses données. Si le bien diagnostiqué est mitoyen, décote de 10% à 20% par rapport à l'ancrage DVF/comparables (sources immobilières convergentes), sauf signal clair que la transaction d'ancrage était elle-même mitoyenne.
   f) Grande surface (180-200m²+) à rénover : le prix/m² tend structurellement à être plus bas (marché plus étroit, moins d'acheteurs pour un gros chantier sur une grande surface) — décote prudente supplémentaire si l'ancrage vient d'un bien nettement plus petit.
@@ -270,18 +270,38 @@ async function queryDvfUrl(url) {
   }
 }
 
-function summarizeTransactions(transactions, rayonUtilise) {
+function summarizeTransactions(transactions, rayonUtilise, surfaceCible) {
   if (transactions.length === 0) return null;
   const prixM2Values = transactions.map((t) => t.prixM2).sort((a, b) => a - b);
   const mediane = prixM2Values[Math.floor(prixM2Values.length / 2)];
-  const recent = transactions.slice(0, 15);
+
+  // Sur un marché dense (grande ville), les 8 exemples les PLUS RÉCENTS peuvent tous être
+  // atypiques en taille (que des studios, par exemple) alors que des biens de taille comparable
+  // existent ailleurs dans les données. On mélange donc : la moitié des exemples montrés sont
+  // les plus proches en surface du bien diagnostiqué, l'autre moitié les plus récents — pour que
+  // l'IA voie toujours de vrais comparables de taille ET une fraîcheur des données.
+  let exemplesTransactions;
+  if (surfaceCible && transactions.length > 8) {
+    const parProximiteSurface = [...transactions].sort(
+      (a, b) => Math.abs(a.surface - surfaceCible) - Math.abs(b.surface - surfaceCible)
+    );
+    const top4Surface = parProximiteSurface.slice(0, 4);
+    const idsDejaPris = new Set(top4Surface.map((t) => `${t.date}-${t.prix}-${t.surface}`));
+    const top4Recent = transactions
+      .filter((t) => !idsDejaPris.has(`${t.date}-${t.prix}-${t.surface}`))
+      .slice(0, 4);
+    exemplesTransactions = [...top4Surface, ...top4Recent];
+  } else {
+    exemplesTransactions = transactions.slice(0, 8);
+  }
+
   return {
     nombreTransactions: transactions.length,
     prixM2Median: mediane,
     prixM2Min: prixM2Values[0],
     prixM2Max: prixM2Values[prixM2Values.length - 1],
     rayonUtilise,
-    exemples: recent.slice(0, 8).map((t) => `${t.date} — ${t.surface}m² — ${t.prix.toLocaleString('fr-FR')}€ (${t.prixM2}€/m²)`)
+    exemples: exemplesTransactions.map((t) => `${t.date} — ${t.surface}m² — ${t.prix.toLocaleString('fr-FR')}€ (${t.prixM2}€/m²)`)
   };
 }
 
@@ -290,7 +310,7 @@ function summarizeTransactions(transactions, rayonUtilise) {
 // le rapport reste utilisable sans cette donnée, juste moins précis.
 // Stratégie : d'abord le code postal exact, puis si rien (secteur rural, peu de transactions),
 // élargit progressivement en rayon géographique (2km, 5km, 10km) autour de l'adresse géocodée.
-async function fetchDvfData(codePostal, typeLocal, localisationTexte) {
+async function fetchDvfData(codePostal, typeLocal, localisationTexte, surfaceCible) {
   // 0. Géocodage d'abord (nécessaire pour la source officielle ET le repli en rayon)
   const geo = await geocodeAddress(localisationTexte || codePostal);
 
@@ -302,26 +322,26 @@ async function fetchDvfData(codePostal, typeLocal, localisationTexte) {
       (await fetchDvfCsvCommune(geo.codeInsee, typeLocal)).map((p) => ({ properties: p }))
     );
     if (transactionsOfficiel.length >= 1) {
-      return summarizeTransactions(transactionsOfficiel, 'commune exacte (source officielle GeoDVF)');
+      return summarizeTransactions(transactionsOfficiel, 'commune exacte (source officielle GeoDVF)', surfaceCible);
     }
   }
 
   // 2. Repli : API communautaire par code postal exact
   const urlCodePostal = `https://api.cquest.org/dvf?code_postal=${encodeURIComponent(codePostal)}&type_local=${encodeURIComponent(typeLocal)}`;
   let transactions = parseDvfTransactions(await queryDvfUrl(urlCodePostal));
-  if (transactions.length >= 3) return summarizeTransactions(transactions, 'code postal exact');
+  if (transactions.length >= 3) return summarizeTransactions(transactions, 'code postal exact', surfaceCible);
 
   // 3. Repli supplémentaire : élargir progressivement le rayon autour de l'adresse géocodée
-  if (!geo) return summarizeTransactions(transactions, 'code postal exact');
+  if (!geo) return summarizeTransactions(transactions, 'code postal exact', surfaceCible);
 
   for (const dist of [2000, 5000, 10000]) {
     const urlRayon = `https://api.cquest.org/dvf?lat=${geo.lat}&lon=${geo.lon}&dist=${dist}&type_local=${encodeURIComponent(typeLocal)}`;
     transactions = parseDvfTransactions(await queryDvfUrl(urlRayon));
-    if (transactions.length >= 3) return summarizeTransactions(transactions, `${dist / 1000}km autour de l'adresse`);
+    if (transactions.length >= 3) return summarizeTransactions(transactions, `${dist / 1000}km autour de l'adresse`, surfaceCible);
   }
 
   // Rien trouvé même en élargissant largement
-  return transactions.length > 0 ? summarizeTransactions(transactions, '10km autour de l\'adresse') : null;
+  return transactions.length > 0 ? summarizeTransactions(transactions, '10km autour de l\'adresse', surfaceCible) : null;
 }
 
 export default async function handler(req, res) {
@@ -456,7 +476,8 @@ export default async function handler(req, res) {
       const localisationEffective = form?.localisation || codePostalTrouve || '';
       if (codePostalTrouve) {
         const typeLocalDvf = (form?.type_bien || '').toLowerCase().includes('appartement') ? 'Appartement' : 'Maison';
-        dvfData = await fetchDvfData(codePostalTrouve, typeLocalDvf, localisationEffective);
+        const surfaceCible = parseFloat(form?.surface) || null;
+        dvfData = await fetchDvfData(codePostalTrouve, typeLocalDvf, localisationEffective, surfaceCible);
       } else {
         console.error('[DVF-DEBUG] Aucun code postal trouvé dans localisation/DPE/comparables — recherche DVF non lancée');
       }
@@ -489,6 +510,7 @@ Infos déclarées sur le bien :
 - Période de construction : ${form?.periode_construction || 'non renseignée'}
 - Année exacte (si connue) : ${form?.annee_exacte || 'non renseignée'}
 - Rénovation thermique connue (même partielle) : ${form?.renovation_recente ? 'oui' : 'non déclarée'}
+- Rénovation esthétique à prévoir (cuisine/salle de bain/peintures datées, déclaré par l'agent) : ${form?.renovation_esthetique ? 'OUI — signal fiable et confirmé, à traiter comme un fait avéré même sans confirmation visuelle nette sur les photos' : 'non déclarée'}
 - Surface : ${form?.surface || 'non renseignée'} m²
 - Chauffage déclaré : ${form?.chauffage && form.chauffage.length > 0 ? form.chauffage.join(', ') : 'non renseigné'}
 - DPE connu (déclaré manuellement par l'utilisateur) : ${form?.dpe || 'non renseigné'}

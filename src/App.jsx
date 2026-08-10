@@ -197,6 +197,7 @@ export default function App() {
     periode_construction: '',
     annee_exacte: '',
     renovation_recente: false,
+    renovation_esthetique: false,
     ventilation_declaree: '',
     piscine: false,
     panneaux_solaires: false,
@@ -1026,6 +1027,15 @@ export default function App() {
                 onChange={handleFormChange}
               />
               Rénovation thermique connue (même partielle)
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="renovation_esthetique"
+                checked={form.renovation_esthetique}
+                onChange={handleFormChange}
+              />
+              Rénovation esthétique à prévoir (cuisine/SDB/peintures datées)
             </label>
             <label className="checkbox-label">
               <input
