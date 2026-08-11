@@ -68,7 +68,7 @@ Règles impératives :
   f) Grande surface (180-200m²+) à rénover : le prix/m² tend structurellement à être plus bas (marché plus étroit, moins d'acheteurs pour un gros chantier sur une grande surface) — décote prudente supplémentaire si l'ancrage vient d'un bien nettement plus petit.
   g) Terrain : ATTENTION au double comptage. N'applique la pondération terrain (20%-50% du prix du m² habitable) QUE si aucun comparable/DVF n'est disponible, OU si le terrain du bien dépasse nettement celui des comparables (alors seulement sur le surplus). Dans le cas standard (terrain de taille similaire aux comparables), le terrain reste un simple argument qualitatif de positionnement, jamais une ligne de calcul séparée.
   h) Piscine, panneaux solaires, garage double, ventilation, vitrage, esthétique générale, servitudes : applique les facteurs pertinents déjà détaillés plus haut, en sélectionnant les 2-3 plus significatifs pour ce bien précis.
-  k) CLIMATISATION, particulièrement pertinent pour un bien situé dans le Sud (PACA, Occitanie, Corse, littoral méditerranéen) ou toute zone reconnue pour ses fortes chaleurs estivales : la climatisation est devenue un critère de confort d'été aussi structurant que le chauffage l'hiver, avec une importance croissante liée à la multiplication des canicules (source : presse spécialisée immobilier 2026). PRÉSENCE confirmée (clim réversible, PAC air-air) → argument positif réel, à mentionner comme un vrai atout. ABSENCE sur un bien dans une région à étés chauds → argument plutôt négatif, de plus en plus pénalisant pour la désirabilité (dans certaines villes du sud, c'est même décrit comme "quasi-obligatoire" pour louer/vendre sans délai). Pas de pourcentage chiffré fiable disponible pour ce critère (contrairement au DPE ou à l'étage) — traite-le comme un facteur QUALITATIF de positionnement dans la fourchette (nudge haut/bas), jamais comme une déduction chiffrée précise. Non pertinent pour un bien dans une région tempérée/fraîche (nord, montagne) — ne l'applique pas hors contexte de région chaude.
+  k) CLIMATISATION vs CHAUFFAGE — utilise la ZONE CLIMATIQUE déjà indiquée en tête de ce message (H1/H2/H3, calculée depuis le code postal, pas à deviner toi-même) pour savoir lequel des deux pèse le plus dans le jugement : en zone H3, l'absence de climatisation est un point de vigilance réel et grandissant ; en zone H1, ce n'est pas un point de vigilance du tout. Pas de pourcentage chiffré fiable disponible pour ce critère — traite-le comme un facteur QUALITATIF de positionnement (nudge haut/bas dans la fourchette), jamais comme une déduction chiffrée précise.
   i) SI LE BIEN EST UN APPARTEMENT (pas une maison) — étage, ascenseur, vue (source : études SeLoger/MeilleursAgents) : rez-de-chaussée → décote de 8% à 10% vs un étage courant. Dernier étage AVEC ascenseur → prime de 15% à 19% vs rez-de-chaussée (jusqu'à 25% pour une ancienne chambre de bonne au dernier étage). DEUX NIVEAUX DE CERTITUDE SUR L'ASCENSEUR, à bien distinguer dans la formulation : 1) FAIT CONFIRMÉ — si "Caractéristiques complémentaires" ou toute déclaration directe de l'agent affirme explicitement la présence OU l'absence d'ascenseur (ex : "pas d'ascenseur", "confirmé sans ascenseur", "ascenseur présent"), traite-le comme un FAIT CERTAIN, sans aucune formulation hésitante ("probable", "non confirmée", "à vérifier") — l'agent qui gère ce mandat le sait de source directe, ce n'est pas une supposition. Applique la décote/prime en conséquence avec la même assurance que pour n'importe quel autre fait déclaré (ex : "4e étage sans ascenseur (confirmé) : décote de 15% appliquée"). 2) DÉDUCTION PAR DÉFAUT — si RIEN n'est déclaré explicitement (ni dans l'annonce ni dans les caractéristiques complémentaires) et que l'étage est le 3e ou plus, déduis PAR DÉFAUT qu'il n'y a probablement pas d'ascenseur (une agence ne manque quasiment jamais de le mentionner s'il y en a un) — dans ce cas seulement, garde une formulation prudente ("probable absence, non confirmée dans les éléments fournis"). Fourchettes de décote dans les deux cas : 3e étage sans ascenseur → environ 10% ; 4e étage et plus → 15% à 20% (source : SeLoger). Pour un immeuble sans ascenseur (confirmé ou déduit), les étages 1-2 restent recherchés (pas de décote), la décote ne s'active qu'à partir du 3e étage. N'applique ces ajustements que si l'étage lui-même est connu — si même l'étage est inconnu, ne devine rien. Une vue dégagée/sur monument ou une exposition sud/traversante déclarée peuvent aussi justifier une prime qualitative modérée, à mentionner sans lui donner un pourcentage chiffré précis (contrairement à l'étage/ascenseur qui sont bien sourcés).
   j) COHÉRENCE ENTRE LE NIVEAU DE L'ANCRAGE ET LES FINITIONS RÉELLES DU BIEN — PROCÉDURE MÉCANIQUE OBLIGATOIRE, à exécuter avant de fixer la fourchette finale : ÉTAPE 1 — regarde "niveau_finition_cuisine" et "niveau_finition_salle_de_bain" dans l'analyse visuelle fournie plus haut dans le message. ÉTAPE 2 — applique la décote correspondante sur ton point d'ancrage prix/m², SANS EXCEPTION, avant de calculer la fourchette finale — ce n'est pas optionnel : "premium" sur les deux → aucune décote, l'ancrage haut est justifié. "standard_superieur" sur les deux (électroménager intégré, plan effet pierre, cohérent mais sans matériaux premium) → décote légère de 5% à 8% seulement. "standard" ou "a_renover" sur au moins un des deux → décote de 10% à 20%. Si les deux critères ont des niveaux différents (ex : cuisine standard_superieur mais salle de bain standard), applique la décote correspondant au niveau le plus bas des deux. ÉTAPE 3 — écris explicitement ce calcul dans "estimation_prix" (ex : "cuisine avec électroménager intégré et plan effet pierre (standard supérieur, pas premium) : décote légère de 6% appliquée sur l'ancrage de X€/m², soit Y€/m² retenu"). Ne remplace JAMAIS cette procédure par une phrase qualitative du type "cuisine en bon état, ce qui soutient un positionnement haut de fourchette" — "bon état" seul n'autorise PAS à sauter cette décote obligatoire ; seul "premium" sur les deux critères dispense totalement de décote. Si l'analyse visuelle n'est pas disponible (pas de photos fournies), tu ne peux pas appliquer cette procédure — dis-le explicitement plutôt que de deviner.
 6) LARGEUR de la fourchette finale : adapte-la à la qualité réelle des données. Resserre-la (± 4 à 6%) si les données DVF sont solides (plusieurs transactions récentes, peu de dispersion, ou vente quasi identique). Garde une fourchette large (± 10-15%) seulement si les données sont réellement éparses ou contradictoires.
@@ -291,6 +291,34 @@ function distanceKm(lat1, lon1, lat2, lon2) {
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Zones climatiques officielles françaises (réglementation thermique RT2012/RE2020),
+// par département — donnée déterministe calculée en code, pas devinée par l'IA à chaque fois.
+// H1 : hivers rigoureux (nord/est/centre-est). H2 : tempéré (ouest/centre/sud-ouest).
+// H3 : étés chauds (méditerranée, Corse). Simplifié aux zones dominantes par département
+// (certains départements sont officiellement subdivisés H1a/H1b/H1c etc., ici regroupés).
+const ZONES_CLIMATIQUES = {
+  H1: ['02','08','10','21','25','39','51','52','54','55','57','58','60','67','68','70','71','80','88','90',
+       '01','03','15','18','19','23','25','28','36','37','41','42','43','45','58','61','63','69','71','72',
+       '73','74','77','89','91','95'],
+  H3: ['04','06','11','13','20','2A','2B','30','34','66','83','84'],
+  // H2 par défaut (ouest, centre, sud-ouest, région parisienne restante) — tout le reste
+};
+function getZoneClimatique(codeDepartement) {
+  if (!codeDepartement) return null;
+  if (ZONES_CLIMATIQUES.H1.includes(codeDepartement)) return 'H1';
+  if (ZONES_CLIMATIQUES.H3.includes(codeDepartement)) return 'H3';
+  return 'H2';
+}
+function texteZoneClimatique(zone) {
+  if (zone === 'H1') {
+    return "Zone climatique H1 (hivers rigoureux — nord/est/centre-est de la France) : la performance du CHAUFFAGE et de l'ISOLATION est le critère de confort dominant, bien plus déterminant ici que la climatisation (quasi absente des critères de recherche). Un poêle à bois/granulés ou une pompe à chaleur performante sont des atouts significatifs. L'absence de climatisation n'est PAS un point de vigilance dans cette zone — ne le mentionne pas comme un défaut.";
+  }
+  if (zone === 'H3') {
+    return "Zone climatique H3 (étés chauds — méditerranée, Corse) : le CONFORT D'ÉTÉ (climatisation, protections solaires, ventilation nocturne) est devenu un critère de valeur aussi structurant que le chauffage l'hiver ailleurs en France, avec une importance croissante liée aux canicules. La présence de climatisation est un vrai atout ; son absence est un point de vigilance de plus en plus pénalisant. Un poêle à bois y est secondaire, un simple complément d'appoint plutôt qu'un argument fort.";
+  }
+  return "Zone climatique H2 (tempérée — ouest/centre/sud-ouest) : un bon équilibre chauffage/rafraîchissement est attendu sans qu'un critère domine nettement l'autre. Évalue chauffage et climatisation avec un poids modéré et équilibré, sans survaloriser l'un au détriment de l'autre.";
 }
 
 async function queryDvfUrl(url) {
@@ -664,11 +692,16 @@ Utilise directement ces observations pour la checklist ci-dessous (points c et j
       }
     }
 
+    // Zone climatique officielle (calculée en code depuis le code postal déclaré, pas devinée par l'IA)
+    const cpPourZone = (form?.localisation || '').match(/\b(\d{2})\d{3}\b/);
+    const deptPourZone = cpPourZone ? (cpPourZone[1] === '20' ? (parseInt(form.localisation.match(/\b\d{5}\b/)?.[0] || '0') < 20200 ? '2A' : '2B') : cpPourZone[1]) : null;
+    const zoneClimatique = getZoneClimatique(deptPourZone);
+
     content.push(
       {
         type: 'text',
         text: `Date du jour (référence pour toute évaluation de fraîcheur ou de validité d'une date) : ${new Date().toLocaleDateString('fr-FR')}
-
+${zoneClimatique ? `\n${texteZoneClimatique(zoneClimatique)}\n` : ''}
 Infos déclarées sur le bien :
 - Type de bien : ${form?.type_bien || 'non renseigné'}
 - Localisation : ${form?.localisation || 'non renseignée'}
