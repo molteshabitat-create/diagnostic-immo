@@ -188,6 +188,8 @@ async function fetchDvfCsvCommune(codeInsee, typeLocal) {
       const idxPieces = headers.indexOf('nombre_pieces_principales');
       const idxAdresseNumero = headers.indexOf('adresse_numero');
       const idxAdresseVoie = headers.indexOf('adresse_nom_voie');
+      const idxLongitude = headers.indexOf('longitude');
+      const idxLatitude = headers.indexOf('latitude');
       if (idxValeur === -1 || idxSurface === -1 || idxType === -1) {
         console.error('[DVF-DEBUG] Colonnes attendues introuvables dans le CSV, headers reçus:', headers);
         continue;
@@ -239,7 +241,9 @@ async function fetchDvfCsvCommune(codeInsee, typeLocal) {
           surface_reelle_bati: parseFloat(cols[idxSurface]),
           nombre_pieces_principales: idxPieces !== -1 ? cols[idxPieces] : null,
           adresse_numero: idxAdresseNumero !== -1 ? cols[idxAdresseNumero] : null,
-          adresse_nom_voie: idxAdresseVoie !== -1 ? cols[idxAdresseVoie] : null
+          adresse_nom_voie: idxAdresseVoie !== -1 ? cols[idxAdresseVoie] : null,
+          longitude: idxLongitude !== -1 ? cols[idxLongitude] : null,
+          latitude: idxLatitude !== -1 ? cols[idxLatitude] : null
         });
       }
       console.error('[DVF-DEBUG] Année', year, ': CSV lu OK,', lines.length - 1, 'lignes totales,', matchedThisYear, `correspondant à "${typeLocal}" (${ecartesMultiLots} écartées multi-lots, ${ecartesGrandTerrain} écartées grand terrain >3000m²)`);
@@ -254,18 +258,38 @@ async function fetchDvfCsvCommune(codeInsee, typeLocal) {
 
 function parseDvfTransactions(features) {
   const transactions = (features || [])
-    .map((f) => f.properties)
-    .filter((p) => p && p.valeur_fonciere > 0 && p.surface_reelle_bati > 0)
-    .map((p) => ({
-      date: p.date_mutation,
-      prix: p.valeur_fonciere,
-      surface: p.surface_reelle_bati,
-      prixM2: Math.round(p.valeur_fonciere / p.surface_reelle_bati),
-      pieces: p.nombre_pieces_principales || null,
-      adresse: [p.adresse_numero, p.adresse_nom_voie].filter(Boolean).join(' ') || null
-    }))
+    .filter((f) => f.properties && f.properties.valeur_fonciere > 0 && f.properties.surface_reelle_bati > 0)
+    .map((f) => {
+      const p = f.properties;
+      let lon = p.longitude ? parseFloat(p.longitude) : null;
+      let lat = p.latitude ? parseFloat(p.latitude) : null;
+      if ((!lon || !lat) && f.geometry?.coordinates) {
+        [lon, lat] = f.geometry.coordinates;
+      }
+      return {
+        date: p.date_mutation,
+        prix: p.valeur_fonciere,
+        surface: p.surface_reelle_bati,
+        prixM2: Math.round(p.valeur_fonciere / p.surface_reelle_bati),
+        pieces: p.nombre_pieces_principales || null,
+        adresse: [p.adresse_numero, p.adresse_nom_voie].filter(Boolean).join(' ') || null,
+        lon: lon || null,
+        lat: lat || null
+      };
+    })
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   return transactions;
+}
+
+// Distance approximative en km entre deux points GPS (formule haversine simplifiée,
+// suffisante pour comparer des distances courtes à l'échelle d'une commune/quartier).
+function distanceKm(lat1, lon1, lat2, lon2) {
+  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 async function queryDvfUrl(url) {
@@ -282,29 +306,45 @@ async function queryDvfUrl(url) {
   }
 }
 
-function summarizeTransactions(transactions, rayonUtilise, surfaceCible) {
+function summarizeTransactions(transactions, rayonUtilise, surfaceCible, geoCible) {
   if (transactions.length === 0) return null;
   const prixM2Values = transactions.map((t) => t.prixM2).sort((a, b) => a - b);
   const mediane = prixM2Values[Math.floor(prixM2Values.length / 2)];
 
+  // Sur une commune étendue ou touristique (ex: Fréjus qui couvre à la fois le centre-ville
+  // et Saint-Aygulf, deux quartiers à des prix très différents), toutes les transactions de
+  // la commune ne sont pas forcément pertinentes pour le quartier précis du bien. Si on a les
+  // coordonnées GPS du bien ET des transactions, on privilégie d'abord celles à proximité
+  // géographique réelle avant de sélectionner par taille/récence.
+  let poolTravail = transactions;
+  if (geoCible?.lat && geoCible?.lon) {
+    const avecDistance = transactions
+      .map((t) => ({ ...t, distanceKm: distanceKm(geoCible.lat, geoCible.lon, t.lat, t.lon) }))
+      .filter((t) => t.distanceKm !== null);
+    const procheQuartier = avecDistance.filter((t) => t.distanceKm <= 3).sort((a, b) => a.distanceKm - b.distanceKm);
+    if (procheQuartier.length >= 5) {
+      poolTravail = procheQuartier; // assez de ventes proches, on se concentre dessus
+    }
+  }
+
   // Sur un marché dense (grande ville), les 8 exemples les PLUS RÉCENTS peuvent tous être
   // atypiques en taille (que des studios, par exemple) alors que des biens de taille comparable
   // existent ailleurs dans les données. On mélange donc : la moitié des exemples montrés sont
-  // les plus proches en surface du bien diagnostiqué, l'autre moitié les plus récents — pour que
+  // les plus proches en surface du bien diagnostiqué, l'autre moitié les plus récentes — pour que
   // l'IA voie toujours de vrais comparables de taille ET une fraîcheur des données.
   let exemplesTransactions;
-  if (surfaceCible && transactions.length > 8) {
-    const parProximiteSurface = [...transactions].sort(
+  if (surfaceCible && poolTravail.length > 8) {
+    const parProximiteSurface = [...poolTravail].sort(
       (a, b) => Math.abs(a.surface - surfaceCible) - Math.abs(b.surface - surfaceCible)
     );
     const top4Surface = parProximiteSurface.slice(0, 4);
     const idsDejaPris = new Set(top4Surface.map((t) => `${t.date}-${t.prix}-${t.surface}`));
-    const top4Recent = transactions
+    const top4Recent = poolTravail
       .filter((t) => !idsDejaPris.has(`${t.date}-${t.prix}-${t.surface}`))
       .slice(0, 4);
     exemplesTransactions = [...top4Surface, ...top4Recent];
   } else {
-    exemplesTransactions = transactions.slice(0, 8);
+    exemplesTransactions = poolTravail.slice(0, 8);
   }
 
   return {
@@ -313,10 +353,12 @@ function summarizeTransactions(transactions, rayonUtilise, surfaceCible) {
     prixM2Min: prixM2Values[0],
     prixM2Max: prixM2Values[prixM2Values.length - 1],
     rayonUtilise,
+    filtreQuartier: poolTravail !== transactions,
     exemples: exemplesTransactions.map((t) => {
       const pieces = t.pieces ? `, ${t.pieces} pièces` : '';
       const adresse = t.adresse ? ` — ${t.adresse}` : '';
-      return `${t.date} — ${t.surface}m²${pieces} — ${t.prix.toLocaleString('fr-FR')}€ (${t.prixM2}€/m²)${adresse}`;
+      const distance = t.distanceKm !== undefined ? ` (${t.distanceKm.toFixed(1)}km du bien)` : '';
+      return `${t.date} — ${t.surface}m²${pieces} — ${t.prix.toLocaleString('fr-FR')}€ (${t.prixM2}€/m²)${adresse}${distance}`;
     })
   };
 }
@@ -338,26 +380,26 @@ async function fetchDvfData(codePostal, typeLocal, localisationTexte, surfaceCib
       (await fetchDvfCsvCommune(geo.codeInsee, typeLocal)).map((p) => ({ properties: p }))
     );
     if (transactionsOfficiel.length >= 1) {
-      return summarizeTransactions(transactionsOfficiel, 'commune exacte (source officielle GeoDVF)', surfaceCible);
+      return summarizeTransactions(transactionsOfficiel, 'commune exacte (source officielle GeoDVF)', surfaceCible, geo);
     }
   }
 
   // 2. Repli : API communautaire par code postal exact
   const urlCodePostal = `https://api.cquest.org/dvf?code_postal=${encodeURIComponent(codePostal)}&type_local=${encodeURIComponent(typeLocal)}`;
   let transactions = parseDvfTransactions(await queryDvfUrl(urlCodePostal));
-  if (transactions.length >= 3) return summarizeTransactions(transactions, 'code postal exact', surfaceCible);
+  if (transactions.length >= 3) return summarizeTransactions(transactions, 'code postal exact', surfaceCible, geo);
 
   // 3. Repli supplémentaire : élargir progressivement le rayon autour de l'adresse géocodée
-  if (!geo) return summarizeTransactions(transactions, 'code postal exact', surfaceCible);
+  if (!geo) return summarizeTransactions(transactions, 'code postal exact', surfaceCible, geo);
 
   for (const dist of [2000, 5000, 10000]) {
     const urlRayon = `https://api.cquest.org/dvf?lat=${geo.lat}&lon=${geo.lon}&dist=${dist}&type_local=${encodeURIComponent(typeLocal)}`;
     transactions = parseDvfTransactions(await queryDvfUrl(urlRayon));
-    if (transactions.length >= 3) return summarizeTransactions(transactions, `${dist / 1000}km autour de l'adresse`, surfaceCible);
+    if (transactions.length >= 3) return summarizeTransactions(transactions, `${dist / 1000}km autour de l'adresse`, surfaceCible, geo);
   }
 
   // Rien trouvé même en élargissant largement
-  return transactions.length > 0 ? summarizeTransactions(transactions, '10km autour de l\'adresse', surfaceCible) : null;
+  return transactions.length > 0 ? summarizeTransactions(transactions, '10km autour de l\'adresse', surfaceCible, geo) : null;
 }
 
 // ÉTAPE 1 (mode prix uniquement) : un appel IA court et ciblé, dédié UNIQUEMENT à l'analyse
@@ -584,7 +626,7 @@ ${dvfData.nombreTransactions} transactions trouvées. Prix/m² réel : médiane 
 Exemples de transactions récentes :
 ${dvfData.exemples.join('\n')}
 --- FIN DES DONNÉES DVF ---
-Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. RÈGLE CRITIQUE ET IMPÉRATIVE sur le CALCUL (pas juste le discours) : si la dispersion entre le prix/m² minimum et maximum est forte (rapport de plus de 2x entre min et max), la MÉDIANE GLOBALE est INTERDITE comme base arithmétique de ton calcul final — tu ne dois PAS faire "médiane + X%". À la place, identifie dans la liste des transactions exemples celle dont le PRIX/M² EST LE PLUS ÉLEVÉ **parmi les transactions dont la surface est raisonnablement comparable au bien diagnostiqué (grosso modo entre 60% et 160% de sa surface habitable)** — ÉCARTE explicitement toute transaction beaucoup plus petite (ex: un studio ou une petite maison de 80m² pour un bien de 145m²) même si son prix/m² est le plus élevé de la liste : les petites surfaces ont structurellement un prix/m² plus haut (effet de taille bien connu, coûts fixes répartis sur moins de m², cela n'a AUCUN rapport avec la qualité ou la récence du bien) — prendre cette transaction comme ancrage surestimerait fortement le bien diagnostiqué. Une transaction avec une surface proche du bien mais un prix/m² proche de la médiane basse n'est pas non plus un bon point d'ancrage — cherche l'équilibre : la transaction au prix/m² le plus élevé PARMI celles de taille comparable, c'est ce double critère (prix/m² élevé ET surface comparable) qui identifie le mieux un bien de bonne qualité plutôt qu'un artefact statistique de petite surface. Calcule directement : (prix/m² de cette transaction) × (surface habitable du bien diagnostiqué) = ton point d'ancrage de départ, PUIS applique les ajustements DPE/âge/qualité par-dessus CE chiffre, jamais par-dessus la médiane. Si tu mentionnes une transaction comme "plus représentative" dans ton texte, elle DOIT être celle utilisée dans le calcul final — ne cite jamais une transaction comme référence pertinente dans le texte pour ensuite calculer sur autre chose (incohérence à éviter absolument). Si aucune transaction n'a une surface comparable, dis-le explicitement et reste prudent plutôt que d'ancrer sur une taille très différente. Si la dispersion est faible (min et max proches), la médiane reste un bon ancrage direct. Ensuite, applique l'ajustement DPE (+7% à +15%, module selon la force du point de comparaison, sans réflexe de rester au minimum) et les autres facteurs qualitatifs par-dessus ce point d'ancrage. Si le nombre de transactions trouvées est très faible (1 ou 2), précise-le explicitement ("échantillon très réduit, N vente(s) seulement") et reste prudent dans la formulation plutôt que de présenter ce chiffre comme une moyenne fiable — mais ne l'écarte pas pour autant, une vraie vente récente reste plus fiable qu'un prix demandé, même seule. Si la recherche a dû être élargie au-delà du code postal exact (rayon en km plutôt que "code postal exact"), précise-le brièvement dans "estimation_prix" (ex: "transactions élargies à X km, la commune précise ayant peu de ventes recensées") ET ajoute cette mise en garde si le bien est en zone frontalière (notamment proximité Luxembourg, Suisse, Allemagne — fréquent en Lorraine/Grand Est/Alsace) : la proximité immédiate d'une frontière augmente systématiquement les prix par rapport aux communes plus éloignées, à cause du pouvoir d'achat des travailleurs frontaliers. Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement. Les exemples de transactions listés peuvent inclure le nombre de pièces et l'adresse exacte quand disponibles : utilise le nombre de pièces comme critère de comparabilité supplémentaire si tu connais celui du bien diagnostiqué (une transaction de surface proche mais avec un nombre de pièces très différent, ex: 82m² en 2 pièces vs 82m² en 5 pièces, n'est pas un vrai comparable — le découpage/standing diffère fortement) ; l'adresse, elle, sert uniquement de référence pour l'agent qui pourrait vouloir vérifier une transaction précise (Google Maps, etc.), ne t'en sers pas pour déduire quoi que ce soit sur la qualité du bien vendu. UTILISE la médiane du secteur (même si elle n'est pas la base directe du calcul en cas de forte dispersion) comme indicateur du STANDING GÉNÉRAL du marché local, pour calibrer ton niveau d'exigence sur le point (j) (cohérence finitions/ancrage) : médiane < 2 000€/m² → marché modeste/rural, sois TRÈS prudent avant de valider un ancrage haut comme justifié, la probabilité qu'un bien de ce secteur soit vraiment "premium" est plus faible statistiquement. Médiane entre 2 000€/m² et 6 000€/m² → marché urbain standard, application normale du point (j). Médiane > 8 000€/m² → marché reconnu comme haut de gamme (grandes métropoles, quartiers prisés), où des prix élevés sont normaux pour le secteur, moins besoin d'une décote systématique même sur un bien aux finitions standards, car le prix/m² de base y est déjà structurellement élevé indépendamment du niveau de finition. VÉRIFICATION FINALE OBLIGATOIRE : une fois ta fourchette calculée (ancrage + tous les ajustements), calcule ce que donnerait (médiane du secteur × surface du bien) et compare ce chiffre à ta fourchette retenue. Si les deux sont raisonnablement proches (médiane × surface tombe dans ta fourchette ou à moins de 15% d'un de ses bords), MENTIONNE-LE explicitement dans "estimation_prix" comme un point de confiance supplémentaire (ex : "la médiane du secteur appliquée à la surface (X€) confirme cet ordre de grandeur, renforçant la fiabilité de cette fourchette"). Si au contraire un grand écart existe entre les deux, mentionne-le aussi mais comme signal de prudence plutôt que de confiance (ex : "écart notable avec ce que suggérerait la médiane brute (X€), à interpréter avec prudence vu la faiblesse de cet indicateur sur un secteur aussi dispersé"). Ce recoupement ne remplace jamais le calcul par ancrage, il vient juste le confirmer ou le nuancer en une phrase.`
+Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces comparables car ce sont des ventes réellement conclues. RÈGLE CRITIQUE ET IMPÉRATIVE sur le CALCUL (pas juste le discours) : si la dispersion entre le prix/m² minimum et maximum est forte (rapport de plus de 2x entre min et max), la MÉDIANE GLOBALE est INTERDITE comme base arithmétique de ton calcul final — tu ne dois PAS faire "médiane + X%". À la place, identifie dans la liste des transactions exemples celle dont le PRIX/M² EST LE PLUS ÉLEVÉ **parmi les transactions dont la surface est raisonnablement comparable au bien diagnostiqué (grosso modo entre 60% et 160% de sa surface habitable)** — ÉCARTE explicitement toute transaction beaucoup plus petite (ex: un studio ou une petite maison de 80m² pour un bien de 145m²) même si son prix/m² est le plus élevé de la liste : les petites surfaces ont structurellement un prix/m² plus haut (effet de taille bien connu, coûts fixes répartis sur moins de m², cela n'a AUCUN rapport avec la qualité ou la récence du bien) — prendre cette transaction comme ancrage surestimerait fortement le bien diagnostiqué. Une transaction avec une surface proche du bien mais un prix/m² proche de la médiane basse n'est pas non plus un bon point d'ancrage — cherche l'équilibre : la transaction au prix/m² le plus élevé PARMI celles de taille comparable, c'est ce double critère (prix/m² élevé ET surface comparable) qui identifie le mieux un bien de bonne qualité plutôt qu'un artefact statistique de petite surface. Calcule directement : (prix/m² de cette transaction) × (surface habitable du bien diagnostiqué) = ton point d'ancrage de départ, PUIS applique les ajustements DPE/âge/qualité par-dessus CE chiffre, jamais par-dessus la médiane. Si tu mentionnes une transaction comme "plus représentative" dans ton texte, elle DOIT être celle utilisée dans le calcul final — ne cite jamais une transaction comme référence pertinente dans le texte pour ensuite calculer sur autre chose (incohérence à éviter absolument). Si aucune transaction n'a une surface comparable, dis-le explicitement et reste prudent plutôt que d'ancrer sur une taille très différente. Si la dispersion est faible (min et max proches), la médiane reste un bon ancrage direct. Ensuite, applique l'ajustement DPE (+7% à +15%, module selon la force du point de comparaison, sans réflexe de rester au minimum) et les autres facteurs qualitatifs par-dessus ce point d'ancrage. Si le nombre de transactions trouvées est très faible (1 ou 2), précise-le explicitement ("échantillon très réduit, N vente(s) seulement") et reste prudent dans la formulation plutôt que de présenter ce chiffre comme une moyenne fiable — mais ne l'écarte pas pour autant, une vraie vente récente reste plus fiable qu'un prix demandé, même seule. Si la recherche a dû être élargie au-delà du code postal exact (rayon en km plutôt que "code postal exact"), précise-le brièvement dans "estimation_prix" (ex: "transactions élargies à X km, la commune précise ayant peu de ventes recensées") ET ajoute cette mise en garde si le bien est en zone frontalière (notamment proximité Luxembourg, Suisse, Allemagne — fréquent en Lorraine/Grand Est/Alsace) : la proximité immédiate d'une frontière augmente systématiquement les prix par rapport aux communes plus éloignées, à cause du pouvoir d'achat des travailleurs frontaliers. Si un écart existe entre le prix médian DVF et les prix demandés des comparables, signale-le explicitement. Les exemples de transactions listés peuvent inclure le nombre de pièces et l'adresse exacte quand disponibles : utilise le nombre de pièces comme critère de comparabilité supplémentaire si tu connais celui du bien diagnostiqué (une transaction de surface proche mais avec un nombre de pièces très différent, ex: 82m² en 2 pièces vs 82m² en 5 pièces, n'est pas un vrai comparable — le découpage/standing diffère fortement) ; l'adresse, elle, sert uniquement de référence pour l'agent qui pourrait vouloir vérifier une transaction précise (Google Maps, etc.), ne t'en sers pas pour déduire quoi que ce soit sur la qualité du bien vendu. Certaines transactions peuvent aussi afficher une distance en km par rapport au bien diagnostiqué (ex: "(1.2km du bien)") : sur une commune étendue ou touristique regroupant des quartiers à standing très différent (ex: Fréjus centre-ville vs Saint-Aygulf, ou toute ville avec un centre historique et une périphérie), privilégie les transactions les plus proches géographiquement comme point d'ancrage plutôt qu'une transaction plus chère/moins chère mais située dans un quartier différent — la proximité géographique réelle prime sur la simple appartenance à la même commune administrative. UTILISE la médiane du secteur (même si elle n'est pas la base directe du calcul en cas de forte dispersion) comme indicateur du STANDING GÉNÉRAL du marché local, pour calibrer ton niveau d'exigence sur le point (j) (cohérence finitions/ancrage) : médiane < 2 000€/m² → marché modeste/rural, sois TRÈS prudent avant de valider un ancrage haut comme justifié, la probabilité qu'un bien de ce secteur soit vraiment "premium" est plus faible statistiquement. Médiane entre 2 000€/m² et 6 000€/m² → marché urbain standard, application normale du point (j). Médiane > 8 000€/m² → marché reconnu comme haut de gamme (grandes métropoles, quartiers prisés), où des prix élevés sont normaux pour le secteur, moins besoin d'une décote systématique même sur un bien aux finitions standards, car le prix/m² de base y est déjà structurellement élevé indépendamment du niveau de finition. VÉRIFICATION FINALE OBLIGATOIRE : une fois ta fourchette calculée (ancrage + tous les ajustements), calcule ce que donnerait (médiane du secteur × surface du bien) et compare ce chiffre à ta fourchette retenue. Si les deux sont raisonnablement proches (médiane × surface tombe dans ta fourchette ou à moins de 15% d'un de ses bords), MENTIONNE-LE explicitement dans "estimation_prix" comme un point de confiance supplémentaire (ex : "la médiane du secteur appliquée à la surface (X€) confirme cet ordre de grandeur, renforçant la fiabilité de cette fourchette"). Si au contraire un grand écart existe entre les deux, mentionne-le aussi mais comme signal de prudence plutôt que de confiance (ex : "écart notable avec ce que suggérerait la médiane brute (X€), à interpréter avec prudence vu la faiblesse de cet indicateur sur un secteur aussi dispersé"). Ce recoupement ne remplace jamais le calcul par ancrage, il vient juste le confirmer ou le nuancer en une phrase.`
         });
       } else if (mode === 'prix') {
         content.push({
