@@ -550,7 +550,7 @@ export default async function handler(req, res) {
     if (validComparables.length > 0) {
       content.push({
         type: 'text',
-        text: "--- DÉBUT DES ANNONCES COMPARABLES : ce sont D'AUTRES biens du même secteur, PAS le bien diagnostiqué ci-dessus. Ne les mélange jamais avec les photos/infos du bien analysé. Chaque bien comparable ci-dessous regroupe sa/ses propre(s) photo(s) ET sa propre description texte — ne mélange pas les infos d'un bien comparable avec un autre. Utilise l'ensemble uniquement pour la comparaison de prix demandée dans 'estimation_prix'. ---"
+        text: "--- DÉBUT DES ANNONCES COMPARABLES : ce sont D'AUTRES biens du même secteur, PAS le bien diagnostiqué ci-dessus. Ne les mélange jamais avec les photos/infos du bien analysé. Chaque bien comparable ci-dessous regroupe sa/ses propre(s) photo(s) ET sa propre description texte — ne mélange pas les infos d'un bien comparable avec un autre. Pour le prix et la surface de chaque comparable : vérifie d'abord la photo, et si ce n'est pas clairement lisible dessus, vérifie la description texte qui l'accompagne (l'utilisateur y indique parfois le prix manuellement si la capture ne le montre pas bien). Si ni la photo ni le texte ne donnent un prix ou une surface exploitable pour un comparable donné, ne l'invente pas — ignore ce comparable précis dans le calcul plutôt que de deviner un chiffre. Utilise l'ensemble uniquement pour la comparaison de prix demandée dans 'estimation_prix'. ---"
       });
       validComparables.forEach((comp, idx) => {
         content.push({ type: 'text', text: `--- Bien comparable n°${idx + 1} ---` });

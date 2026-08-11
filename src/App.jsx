@@ -854,7 +854,7 @@ export default function App() {
                 <textarea
                   value={slot.texte}
                   onChange={(e) => handleSlotTexteChange(slotIndex, e.target.value)}
-                  placeholder="Description de ce bien comparable (optionnel)..."
+                  placeholder="Description de ce bien comparable (optionnel)... Si le prix n'est pas clairement visible sur la capture, précisez-le ici (ex : 450 000€, 120m²)."
                   className="comparable-textarea"
                 />
               </div>
