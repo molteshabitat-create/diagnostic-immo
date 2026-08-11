@@ -328,6 +328,9 @@ textarea { resize: vertical; min-height: 80px; }
   margin-top: 5px;
   font-style: italic;
 }
+@media (max-width: 640px) {
+  .paste-hint { display: none; }
+}
 
 .paste-instructions {
   background: var(--paper);
@@ -335,6 +338,11 @@ textarea { resize: vertical; min-height: 80px; }
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 18px;
+}
+@media (max-width: 640px) {
+  /* Sur mobile, pas de clavier/souris — le bouton "Choisir des photos" natif
+     (galerie du téléphone) suffit largement, ces instructions n'ont pas de sens ici. */
+  .paste-instructions { display: none; }
 }
 .paste-steps {
   display: flex;

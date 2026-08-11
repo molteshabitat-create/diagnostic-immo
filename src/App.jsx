@@ -122,13 +122,9 @@ function PasteInstructions() {
         <div className="paste-step">
           <span className="paste-step-num">1</span>
           <div className="keycap-row">
-            <span className="keycap">⊞ Win</span>
-            <span className="keycap-plus">+</span>
-            <span className="keycap">⇧ Maj</span>
-            <span className="keycap-plus">+</span>
-            <span className="keycap keycap-highlight">S</span>
+            <span className="keycap keycap-highlight">Impr écran</span>
           </div>
-          <span className="paste-step-label">Capturez une zone de l'écran</span>
+          <span className="paste-step-label">Capturez l'écran (touche "PrtScn")</span>
         </div>
         <span className="paste-arrow">→</span>
         <div className="paste-step">
