@@ -406,7 +406,11 @@ Sois STRICT sur "premium" : ne l'utilise que si tu vois clairement des matériau
     });
     clearTimeout(timeout);
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('[PHOTO-EXTRACT] Échec HTTP', response.status, errText);
+      return null;
+    }
     const data = await response.json();
     const textBlock = data.content.find((c) => c.type === 'text');
     const rawText = textBlock ? textBlock.text : '{}';
