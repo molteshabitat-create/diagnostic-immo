@@ -62,14 +62,14 @@ Règles impératives :
 5) APRÈS AVOIR DÉTERMINÉ LE POINT D'ANCRAGE (prix/m² × surface), applique SYSTÉMATIQUEMENT cette checklist dans l'ordre, un point après l'autre — ne saute AUCUN point qui s'applique à ce bien, même si le texte final doit rester concis (résume plusieurs points en une phrase si besoin, mais n'en ignore aucun dans ton raisonnement) :
   a) DPE favorable (A/B vs secteur en C-D) : prime de +7% à +15% (études Notaires de France, "valeur verte"). Ne l'applique que si point de comparaison DPE clair.
   b) DPE défavorable (E/F, menuiseries/isolation à refaire) : jamais un simple pourcentage, et JAMAIS "à prévoir"/"devis à faire" sans montant — CHIFFRE un montant précis et SOUSTRAIS-le explicitement du point d'ancrage, même en fourchette. Réutilise ces fourchettes (à multiplier par la surface réelle du bien / 100-150m² si le bien est notablement plus grand) : menuiseries 8 000€-15 000€ ; VMC 1 500€-4 000€ ; isolation combles 15€-40€/m² (perdus) ou 35€-85€/m² (aménageables) ; sols à refaire 60€-150€/m² si dégradés/très datés. INTERDICTION de laisser ce poste vague ("fenêtres à prévoir" sans chiffre) — un montant doit obligatoirement apparaître.
-  c) Cuisine/salle de bain — SIGNAL PRIORITAIRE : si "Rénovation esthétique à prévoir" est coché par l'agent, traite-le comme un fait CONFIRMÉ et chiffre-le systématiquement (ne saute jamais ce point si cette case est cochée), même si les photos ne le montrent pas clairement. Si la case n'est pas cochée, repère sur les PHOTOS le niveau de vétusté et distingue selon l'IMPACT réel sur le budget de l'acheteur : (A) daté mais fonctionnel/entretenu (carrelage ancien mais propre, sanitaires vieillots mais qui marchent, pas de dégradation visible) → ce n'est PAS une dépense forcée immédiate, traite ça comme un simple facteur qualitatif de désirabilité (nudge vers le bas de la fourchette), PAS comme une déduction ferme de 8 000€-12 000€. (B) figé depuis la construction ET signes de dégradation réelle (fissuré/décollé, taché/endommagé, moisissures, fuite) OU électricité/plomberie clairement obsolète et dangereuse → chiffre une vraie déduction : 800€-2000€/m² par salle de bain, 500€-1500€/m² pour la cuisine, pouvant atteindre 40 000€-80 000€ sur une grande maison. Le simple fait d'être "démodé" ne suffit pas à justifier (B) sans la case cochée — il faut un vrai signe de dysfonctionnement. Si des photos ont été fournies, tranche maintenant plutôt que de reporter "après visite".
+  c) Cuisine/salle de bain — SIGNAL PRIORITAIRE : si "Rénovation esthétique à prévoir" est coché par l'agent, traite-le comme un fait CONFIRMÉ et chiffre-le systématiquement (ne saute jamais ce point si cette case est cochée). Sinon, utilise l'ANALYSE VISUELLE DU BIEN fournie plus haut dans le message (niveau_finition_cuisine, niveau_finition_salle_de_bain, défauts_visibles) si elle est présente — c'est une analyse déjà faite, base-toi dessus directement sans redemander plus d'infos. Distingue selon l'IMPACT réel sur le budget de l'acheteur : (A) "standard" ou daté mais fonctionnel/entretenu, sans défaut listé → PAS une dépense forcée immédiate, simple facteur qualitatif de désirabilité (nudge vers le bas de la fourchette), PAS une déduction ferme de 8 000€-12 000€. (B) "a_renover" OU des défauts listés (fissure, humidité, dégradation) → chiffre une vraie déduction : 800€-2000€/m² par salle de bain, 500€-1500€/m² pour la cuisine, pouvant atteindre 40 000€-80 000€ sur une grande maison. (Premium) → traite comme un vrai atout haut de gamme, cohérent avec le point j. Le simple fait d'être "démodé" ne suffit pas à justifier (B) sans signe de dysfonctionnement réel. Tranche maintenant plutôt que de reporter "après visite".
   d) Écart d'âge de construction (10-15 ans+ vs le point d'ancrage), INDÉPENDANT du DPE : argument de positionnement distinct à mentionner explicitement, pas juste sous-entendu via le DPE.
   e) Statut mitoyen : le DVF ne distingue PAS mitoyen/individuel dans ses données. Si le bien diagnostiqué est mitoyen, décote de 10% à 20% par rapport à l'ancrage DVF/comparables (sources immobilières convergentes), sauf signal clair que la transaction d'ancrage était elle-même mitoyenne.
   f) Grande surface (180-200m²+) à rénover : le prix/m² tend structurellement à être plus bas (marché plus étroit, moins d'acheteurs pour un gros chantier sur une grande surface) — décote prudente supplémentaire si l'ancrage vient d'un bien nettement plus petit.
   g) Terrain : ATTENTION au double comptage. N'applique la pondération terrain (20%-50% du prix du m² habitable) QUE si aucun comparable/DVF n'est disponible, OU si le terrain du bien dépasse nettement celui des comparables (alors seulement sur le surplus). Dans le cas standard (terrain de taille similaire aux comparables), le terrain reste un simple argument qualitatif de positionnement, jamais une ligne de calcul séparée.
   h) Piscine, panneaux solaires, garage double, ventilation, vitrage, esthétique générale, servitudes : applique les facteurs pertinents déjà détaillés plus haut, en sélectionnant les 2-3 plus significatifs pour ce bien précis.
   i) SI LE BIEN EST UN APPARTEMENT (pas une maison) — étage, ascenseur, vue (source : études MeilleursAgents) : rez-de-chaussée → décote de 8% à 10% vs un étage courant. Dernier étage avec ascenseur → prime de 15% à 19% vs rez-de-chaussée (jusqu'à 25% pour une ancienne chambre de bonne au dernier étage). SANS ascenseur, la logique s'inverse : c'est le 4e étage qui devient le plus recherché (+12,5% vs RDC), un étage élevé sans ascenseur perd son attrait au lieu d'en gagner. N'applique ces ajustements que si l'étage et la présence/absence d'ascenseur sont connus (mentionnés dans l'annonce ou dans les caractéristiques complémentaires déclarées) — sinon ne les invente pas. Une vue dégagée/sur monument ou une exposition sud/traversante déclarée peuvent aussi justifier une prime qualitative modérée, à mentionner sans lui donner un pourcentage chiffré précis (contrairement à l'étage/ascenseur qui sont bien sourcés).
-  j) COHÉRENCE ENTRE LE NIVEAU DE L'ANCRAGE ET LES FINITIONS RÉELLES DU BIEN : une transaction DVF ou un comparable au prix/m² très élevé (haut de la fourchette locale) reflète très probablement un bien avec des finitions haut de gamme (matériaux premium, rénovation complète récente) — ce n'est PAS le niveau de prix "normal" pour n'importe quel bien de cette taille dans le secteur. Avant d'ancrer dessus, VÉRIFIE sur les PHOTOS du bien diagnostiqué si ses finitions justifient réellement ce niveau : cuisine/salle de bain avec matériaux visiblement premium (marques haut de gamme, pierre naturelle, agencement sur-mesure) et état impeccable → l'ancrage haut est justifié. Cuisine/salle de bain d'aspect standard (fonctionnelle mais sans signe de matériaux premium ni de rénovation luxueuse récente) → le bien ne correspond probablement PAS au niveau de l'ancrage le plus haut, même s'il est en bon état général ; dans ce cas, positionne-toi plutôt sur un point d'ancrage plus modéré (médiane du secteur ou transaction de prix/m² intermédiaire parmi celles de taille comparable, pas systématiquement la plus haute) et explique ce choix explicitement dans "estimation_prix" (ex : "finitions standards sans matériaux premium visibles, écart avec le comparable haut de gamme à X€/m², positionnement plus modéré retenu").
+  j) COHÉRENCE ENTRE LE NIVEAU DE L'ANCRAGE ET LES FINITIONS RÉELLES DU BIEN : une transaction DVF ou un comparable au prix/m² très élevé (haut de la fourchette locale) reflète très probablement un bien avec des finitions haut de gamme — ce n'est PAS le niveau de prix "normal" pour n'importe quel bien de cette taille. UTILISE L'ANALYSE VISUELLE DU BIEN fournie plus haut (niveau_finition_cuisine, niveau_finition_salle_de_bain) pour trancher : "premium" sur les deux → l'ancrage haut est justifié. "standard" ou "a_renover" → le bien ne correspond probablement PAS au niveau de l'ancrage le plus haut, même en bon état général ; positionne-toi plutôt sur un point d'ancrage plus modéré (médiane du secteur ou transaction de prix/m² intermédiaire parmi celles de taille comparable, pas systématiquement la plus haute) et explique ce choix explicitement dans "estimation_prix" (ex : "finitions standards selon l'analyse visuelle, écart avec le comparable haut de gamme à X€/m², positionnement plus modéré retenu"). C'EST UN POINT OBLIGATOIRE de la checklist, ne le saute pas.
 6) LARGEUR de la fourchette finale : adapte-la à la qualité réelle des données. Resserre-la (± 4 à 6%) si les données DVF sont solides (plusieurs transactions récentes, peu de dispersion, ou vente quasi identique). Garde une fourchette large (± 10-15%) seulement si les données sont réellement éparses ou contradictoires.
 7) Si NI données DVF NI comparables ne sont disponibles, dis-le clairement dans "estimation_prix" plutôt que d'inventer un chiffre. Si moins de 2 comparables exploitables et pas de DVF, précise que l'échantillon est trop faible et reste très prudent.
 
@@ -348,6 +348,64 @@ async function fetchDvfData(codePostal, typeLocal, localisationTexte, surfaceCib
   return transactions.length > 0 ? summarizeTransactions(transactions, '10km autour de l\'adresse', surfaceCible) : null;
 }
 
+// ÉTAPE 1 (mode prix uniquement) : un appel IA court et ciblé, dédié UNIQUEMENT à l'analyse
+// visuelle des photos du bien. Sort des faits structurés compacts, pas de texte libre —
+// ça évite de faire porter à l'appel principal (étape 2, avec DVF + comparables + checklist
+// de calcul) la charge supplémentaire de devoir aussi analyser les photos en détail, ce qui
+// causait des oublis systématiques (checklist trop longue à suivre en une seule fois).
+async function extractPhotoFacts(images) {
+  if (!images || images.length === 0) return null;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
+
+    const content = [
+      ...images.map((img) => ({
+        type: 'image',
+        source: { type: 'base64', media_type: img.media_type || 'image/jpeg', data: img.data }
+      })),
+      {
+        type: 'text',
+        text: `Analyse UNIQUEMENT ce que montrent ces photos d'un bien immobilier. Réponds en JSON strict, rien d'autre (pas de texte avant/après, pas de markdown) :
+{
+  "niveau_finition_cuisine": "premium" | "standard" | "a_renover" | "non_visible",
+  "niveau_finition_salle_de_bain": "premium" | "standard" | "a_renover" | "non_visible",
+  "details_cuisine_sdb": "string courte (20 mots max) décrivant ce qui justifie ce niveau, ex: matériaux visibles, marques, état",
+  "defauts_visibles": ["string courte par défaut visible : fissure, humidité, façade dégradée, etc. — tableau vide si rien de notable"],
+  "esthetique_generale": "soignee" | "correcte" | "negligee" | "non_evaluable"
+}
+Sois strict sur "premium" : ne l'utilise que si tu vois clairement des matériaux/marques haut de gamme (pierre naturelle, marques connues, agencement sur-mesure) et un état impeccable. Une cuisine/salle de bain simplement propre et fonctionnelle sans signe de luxe est "standard", pas "premium".`
+      }
+    ];
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-5',
+        max_tokens: 500,
+        messages: [{ role: 'user', content }]
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    const textBlock = data.content.find((c) => c.type === 'text');
+    const rawText = textBlock ? textBlock.text : '{}';
+    const cleaned = rawText.replace(/```json|```/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error('[PHOTO-EXTRACT] Échec extraction faits photos:', err.message);
+    return null; // en cas d'échec, l'étape 2 se rabat sur les photos brutes (comportement d'avant)
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Méthode non autorisée' });
@@ -403,15 +461,24 @@ export default async function handler(req, res) {
       });
     }
 
+    // En mode prix, on lance l'extraction des faits visuels (étape 1) EN PARALLÈLE de la
+    // recherche DVF plus bas — les deux sont indépendantes, pas la peine de les faire en série
+    // et de perdre du temps (contrainte de timeout à surveiller sur le plan gratuit Vercel).
+    const photoFactsPromise =
+      mode === 'prix' && images && images.length > 0 ? extractPhotoFacts(images) : Promise.resolve(null);
+
     content.push(
-      ...(images || []).map((img) => ({
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: img.media_type || 'image/jpeg',
-          data: img.data
-        }
-      }))
+      ...(mode === 'prix'
+        ? [] // en mode prix, les photos brutes du bien seront remplacées par les faits extraits (étape 1) plus bas
+        : (images || []).map((img) => ({
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: img.media_type || 'image/jpeg',
+              data: img.data
+            }
+          }))
+      )
     );
 
     if (validComparables.length > 0) {
@@ -500,6 +567,33 @@ Ces données DVF sont BEAUCOUP plus fiables que les prix demandés des annonces 
           type: 'text',
           text: "--- DONNÉES DVF : non disponibles même en élargissant la recherche (secteur avec très peu de transactions enregistrées, ou API DVF communautaire temporairement indisponible) — base ton estimation uniquement sur les annonces comparables fournies, et rappelle-le dans 'estimation_prix'. ---"
         });
+      }
+    }
+
+    // Récupération des faits extraits des photos (étape 1, lancée en parallèle plus haut).
+    // Si l'extraction a échoué, on retombe sur l'envoi des photos brutes (comportement d'avant).
+    if (mode === 'prix') {
+      const photoFacts = await photoFactsPromise;
+      if (photoFacts) {
+        content.push({
+          type: 'text',
+          text: `--- ANALYSE VISUELLE DU BIEN DIAGNOSTIQUÉ (déjà réalisée en amont, fais confiance à ces observations) ---
+Niveau de finition cuisine : ${photoFacts.niveau_finition_cuisine || 'non évalué'}
+Niveau de finition salle de bain : ${photoFacts.niveau_finition_salle_de_bain || 'non évalué'}
+Détails : ${photoFacts.details_cuisine_sdb || 'non précisé'}
+Défauts visibles : ${(photoFacts.defauts_visibles && photoFacts.defauts_visibles.length > 0) ? photoFacts.defauts_visibles.join(', ') : 'aucun défaut notable identifié'}
+Esthétique générale : ${photoFacts.esthetique_generale || 'non évaluée'}
+--- FIN DE L'ANALYSE VISUELLE ---
+Utilise directement ces observations pour la checklist ci-dessous (points c et j notamment) — inutile de ré-analyser les photos, cette analyse a déjà été faite avec attention.`
+        });
+      } else if (images && images.length > 0) {
+        // Repli : extraction échouée, on renvoie les photos brutes comme avant
+        content.push(
+          ...images.map((img) => ({
+            type: 'image',
+            source: { type: 'base64', media_type: img.media_type || 'image/jpeg', data: img.data }
+          }))
+        );
       }
     }
 
