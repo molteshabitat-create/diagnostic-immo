@@ -366,6 +366,7 @@ async function fetchDvfData(codePostal, typeLocal, localisationTexte, surfaceCib
 // de calcul) la charge supplémentaire de devoir aussi analyser les photos en détail, ce qui
 // causait des oublis systématiques (checklist trop longue à suivre en une seule fois).
 async function extractPhotoFacts(images) {
+  console.error('[PHOTO-EXTRACT] Fonction appelée avec', images ? images.length : 0, 'image(s)');
   if (!images || images.length === 0) return null;
   try {
     const controller = new AbortController();
@@ -482,6 +483,11 @@ export default async function handler(req, res) {
     // En mode prix, on lance l'extraction des faits visuels (étape 1) EN PARALLÈLE de la
     // recherche DVF plus bas — les deux sont indépendantes, pas la peine de les faire en série
     // et de perdre du temps (contrainte de timeout à surveiller sur le plan gratuit Vercel).
+    console.error('[PHOTO-EXTRACT] Condition de déclenchement:', {
+      mode,
+      imagesExiste: !!images,
+      imagesLength: images ? images.length : 'undefined'
+    });
     const photoFactsPromise =
       mode === 'prix' && images && images.length > 0 ? extractPhotoFacts(images) : Promise.resolve(null);
 
