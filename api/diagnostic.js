@@ -436,7 +436,7 @@ export default async function handler(req, res) {
     mode,
     localisation: form?.localisation,
     type_bien: form?.type_bien,
-    version: 'debug-v2'
+    version: 'debug-v3-photofix'
   });
 
   const hasImages = images && Array.isArray(images) && images.length > 0;
