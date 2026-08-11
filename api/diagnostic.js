@@ -321,6 +321,76 @@ function texteZoneClimatique(zone) {
   return "Zone climatique H2 (tempérée — ouest/centre/sud-ouest) : un bon équilibre chauffage/rafraîchissement est attendu sans qu'un critère domine nettement l'autre. Évalue chauffage et climatisation avec un poids modéré et équilibré, sans survaloriser l'un au détriment de l'autre.";
 }
 
+// Points de référence répartis sur tout le littoral français (Manche, Atlantique, Méditerranée,
+// Corse) — permet de calculer une distance à la mer approximative en comparant le bien au point
+// côtier le plus proche, plutôt que de laisser l'IA deviner depuis le seul nom de la ville.
+const POINTS_LITTORAL = [
+  // Manche / Nord
+  { lat: 51.0357, lon: 2.3773 }, // Dunkerque
+  { lat: 50.9513, lon: 1.8587 }, // Calais
+  { lat: 50.7264, lon: 1.6147 }, // Boulogne-sur-Mer
+  { lat: 50.5252, lon: 1.5905 }, // Le Touquet
+  { lat: 49.9297, lon: 1.0787 }, // Dieppe
+  { lat: 49.4944, lon: 0.1079 }, // Le Havre
+  { lat: 49.4432, lon: -1.0999 }, // Cherbourg
+  { lat: 48.6359, lon: -1.5115 }, // Saint-Malo
+  { lat: 48.5843, lon: -3.9210 }, // Roscoff
+  // Bretagne / Atlantique
+  { lat: 48.3904, lon: -4.4861 }, // Brest
+  { lat: 47.9959, lon: -4.1031 }, // Quimper
+  { lat: 47.7482, lon: -3.3660 }, // Lorient
+  { lat: 47.6587, lon: -2.7603 }, // Vannes
+  { lat: 47.2735, lon: -2.2116 }, // La Baule
+  { lat: 47.2173, lon: -2.2100 }, // Saint-Nazaire
+  { lat: 46.6606, lon: -1.4260 }, // Les Sables-d'Olonne
+  { lat: 46.1591, lon: -1.1520 }, // La Rochelle
+  { lat: 45.6366, lon: -1.0333 }, // Royan
+  { lat: 44.6605, lon: -1.1690 }, // Arcachon
+  { lat: 44.5333, lon: -1.2000 }, // Cap Ferret
+  { lat: 43.4832, lon: -1.5586 }, // Biarritz
+  { lat: 43.3891, lon: -1.6773 }, // Saint-Jean-de-Luz
+  // Méditerranée
+  { lat: 42.6986, lon: 2.8956 }, // Perpignan/Canet
+  { lat: 43.1839, lon: 3.0034 }, // Narbonne-Plage
+  { lat: 43.5305, lon: 3.5054 }, // Sète
+  { lat: 43.6112, lon: 3.8767 }, // Palavas/Montpellier
+  { lat: 43.4835, lon: 4.6321 }, // Saintes-Maries-de-la-Mer
+  { lat: 43.2965, lon: 5.3698 }, // Marseille
+  { lat: 43.1242, lon: 5.9280 }, // Toulon
+  { lat: 43.2965, lon: 6.6291 }, // Saint-Tropez
+  { lat: 43.4014, lon: 6.9663 }, // Fréjus/Saint-Raphaël
+  { lat: 43.5528, lon: 7.0174 }, // Cannes
+  { lat: 43.6047, lon: 7.0295 }, // Antibes
+  { lat: 43.7102, lon: 7.2620 }, // Nice
+  { lat: 43.7384, lon: 7.4246 }, // Monaco/Menton
+  // Corse
+  { lat: 41.9192, lon: 8.7386 }, // Ajaccio
+  { lat: 42.6976, lon: 9.4509 }, // Bastia
+  { lat: 41.5912, lon: 9.2795 }  // Porto-Vecchio
+];
+function distanceMerKm(lat, lon) {
+  if (lat == null || lon == null) return null;
+  let min = Infinity;
+  for (const point of POINTS_LITTORAL) {
+    const d = distanceKm(lat, lon, point.lat, point.lon);
+    if (d < min) min = d;
+  }
+  return min === Infinity ? null : min;
+}
+function texteProximiteMer(distKm) {
+  if (distKm == null) return '';
+  if (distKm <= 0.5) {
+    return `Bien situé à environ ${distKm.toFixed(1)}km de la mer (moins de 500m, ~5min à pied) : prime de proximité maximale, environ +23% par rapport à un bien à 15-30min de marche de la plage (source : MeilleursAgents/SeLoger). Argument de prix fort à intégrer explicitement.`;
+  }
+  if (distKm <= 2) {
+    return `Bien situé à environ ${distKm.toFixed(1)}km de la mer (moins de 2km) : prime de proximité réelle, environ +7,9% en général, mais l'effet est bien plus marqué sur une MAISON (+24,9%) que sur un APPARTEMENT (+17,2%) — module selon le type de bien (source : MeilleursAgents). Argument de prix à intégrer explicitement.`;
+  }
+  if (distKm <= 10) {
+    return `Bien situé à environ ${distKm.toFixed(1)}km de la mer : effet de proximité mer modéré à faible au-delà de 2km, ne l'utilise que comme argument qualitatif mineur, sans pourcentage chiffré précis.`;
+  }
+  return null; // trop loin pour que la proximité mer soit un argument pertinent
+}
+
 async function queryDvfUrl(url) {
   try {
     const controller = new AbortController();
@@ -516,7 +586,7 @@ export default async function handler(req, res) {
   const hasDpe = hasDpeImages || hasDpeText;
   const hasAnnonce = form?.annonce && form.annonce.trim().length > 0;
   const validComparables = Array.isArray(comparablesData)
-    ? comparablesData.filter((c) => (c.images && c.images.length > 0) || (c.texte && c.texte.trim().length > 0))
+    ? comparablesData.filter((c) => (c.images && c.images.length > 0) || (c.texte && c.texte.trim().length > 0) || c.etat)
     : [];
   const hasComparablesCheck = validComparables.length > 0;
 
@@ -595,6 +665,10 @@ export default async function handler(req, res) {
         });
         if (comp.texte && comp.texte.trim().length > 0) {
           content.push({ type: 'text', text: `Description du bien comparable n°${idx + 1} :\n"""${comp.texte}"""` });
+        }
+        if (comp.etat) {
+          const etatLabels = { rien: 'Rien à signaler (bon état général)', a_rafraichir: 'À rafraîchir', a_renover: 'À rénover' };
+          content.push({ type: 'text', text: `État déclaré par l'agent pour le bien comparable n°${idx + 1} : ${etatLabels[comp.etat] || comp.etat} — fais confiance à cette info déclarée directement, pas besoin de la redéduire depuis la photo.` });
         }
       });
       content.push({ type: 'text', text: '--- FIN DES ANNONCES COMPARABLES ---' });
@@ -697,11 +771,21 @@ Utilise directement ces observations pour la checklist ci-dessous (points c et j
     const deptPourZone = cpPourZone ? (cpPourZone[1] === '20' ? (parseInt(form.localisation.match(/\b\d{5}\b/)?.[0] || '0') < 20200 ? '2A' : '2B') : cpPourZone[1]) : null;
     const zoneClimatique = getZoneClimatique(deptPourZone);
 
+    // Distance à la mer (calculée depuis les coordonnées GPS du bien, pas devinée depuis le nom de la ville)
+    let texteMer = '';
+    if (form?.localisation) {
+      const geoPourMer = await geocodeAddress(form.localisation);
+      if (geoPourMer?.lat && geoPourMer?.lon) {
+        const distMer = distanceMerKm(geoPourMer.lat, geoPourMer.lon);
+        texteMer = texteProximiteMer(distMer) || '';
+      }
+    }
+
     content.push(
       {
         type: 'text',
         text: `Date du jour (référence pour toute évaluation de fraîcheur ou de validité d'une date) : ${new Date().toLocaleDateString('fr-FR')}
-${zoneClimatique ? `\n${texteZoneClimatique(zoneClimatique)}\n` : ''}
+${zoneClimatique ? `\n${texteZoneClimatique(zoneClimatique)}\n` : ''}${texteMer ? `\n${texteMer}\n` : ''}
 Infos déclarées sur le bien :
 - Type de bien : ${form?.type_bien || 'non renseigné'}
 - Localisation : ${form?.localisation || 'non renseignée'}

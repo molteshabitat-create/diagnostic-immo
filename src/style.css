@@ -525,6 +525,34 @@ textarea { resize: vertical; min-height: 80px; }
   outline: 2px solid var(--blueprint);
   outline-offset: 1px;
 }
+.etat-comparable-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.etat-comparable-label {
+  font-size: 12px;
+  color: var(--ink-dim);
+  margin-right: 2px;
+}
+.etat-comparable-btn {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+.etat-comparable-btn-active {
+  background: var(--blueprint);
+  border-color: var(--blueprint);
+  color: white;
+  font-weight: 600;
+}
 
 .checkbox-grid {
   display: grid;

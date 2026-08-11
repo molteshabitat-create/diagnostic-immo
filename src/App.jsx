@@ -183,11 +183,11 @@ export default function App() {
   const [dpeFile, setDpeFile] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [comparableSlots, setComparableSlots] = useState([
-    { photos: [], texte: '' },
-    { photos: [], texte: '' },
-    { photos: [], texte: '' },
-    { photos: [], texte: '' },
-    { photos: [], texte: '' }
+    { photos: [], texte: '', etat: '' },
+    { photos: [], texte: '', etat: '' },
+    { photos: [], texte: '', etat: '' },
+    { photos: [], texte: '', etat: '' },
+    { photos: [], texte: '', etat: '' }
   ]);
   const [form, setForm] = useState({
     periode_construction: '',
@@ -274,6 +274,12 @@ export default function App() {
   const handleSlotTexteChange = (slotIndex, value) => {
     setComparableSlots((prev) =>
       prev.map((slot, i) => (i === slotIndex ? { ...slot, texte: value } : slot))
+    );
+  };
+
+  const handleSlotEtatChange = (slotIndex, value) => {
+    setComparableSlots((prev) =>
+      prev.map((slot, i) => (i === slotIndex ? { ...slot, etat: value } : slot))
     );
   };
 
@@ -400,9 +406,10 @@ export default function App() {
 
       const comparablesData = await Promise.all(
         comparableSlots
-          .filter((slot) => slot.photos.length > 0 || slot.texte.trim().length > 0)
+          .filter((slot) => slot.photos.length > 0 || slot.texte.trim().length > 0 || slot.etat)
           .map(async (slot) => ({
             texte: slot.texte,
+            etat: slot.etat,
             images: await Promise.all(
               slot.photos.map(async (file) => ({
                 media_type: 'image/jpeg',
@@ -857,6 +864,24 @@ export default function App() {
                   placeholder="Description de ce bien comparable (optionnel)... Si le prix n'est pas clairement visible sur la capture, précisez-le ici (ex : 450 000€, 120m²)."
                   className="comparable-textarea"
                 />
+                <div className="etat-comparable-row">
+                  <span className="etat-comparable-label">État du bien :</span>
+                  {[
+                    { value: '', label: 'Non précisé' },
+                    { value: 'rien', label: 'Rien à signaler' },
+                    { value: 'a_rafraichir', label: 'À rafraîchir' },
+                    { value: 'a_renover', label: 'À rénover' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`etat-comparable-btn ${slot.etat === option.value ? 'etat-comparable-btn-active' : ''}`}
+                      onClick={() => handleSlotEtatChange(slotIndex, option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
