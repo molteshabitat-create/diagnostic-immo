@@ -215,7 +215,7 @@ export default function App() {
   const [error, setError] = useState(null);
 
   const handlePhotoChange = (e) => {
-    const maxPhotos = 5;
+    const maxPhotos = 8;
     const files = Array.from(e.target.files).slice(0, maxPhotos);
     setPhotos(files);
   };
@@ -245,7 +245,7 @@ export default function App() {
       if (!file) return;
       e.preventDefault();
       if (pasteTarget === 'main') {
-        setPhotos((prev) => [...prev, file].slice(0, 5));
+        setPhotos((prev) => [...prev, file].slice(0, 8));
       } else if (typeof pasteTarget === 'number') {
         setComparableSlots((prev) =>
           prev.map((slot, i) => (i === pasteTarget ? { ...slot, photos: [file] } : slot))
@@ -744,7 +744,7 @@ export default function App() {
           </div>
 
           <label>
-            Photos du bien (optionnel, max 5)
+            Photos du bien (optionnel, max 8)
             <span className="hint">
               {mode === 'prix'
                 ? "Recommandé pour ancrer l'estimation : l'IA compare l'état visible du bien aux annonces concurrentes."
