@@ -663,21 +663,43 @@ export default function App() {
 
       <h2 className="section-title">Comment ça marche</h2>
       <div className="steps">
-        <div className="step">
-          <div className="num">01</div>
-          <h3>Préparation</h3>
-          <p>Photos du bien, texte de l'annonce, et le DPE officiel si vous l'avez — tout est utilisé. Simulez aussi votre texte avant parution de l'annonce !</p>
-        </div>
-        <div className="step">
-          <div className="num">02</div>
-          <h3>L'IA analyse</h3>
-          <p>Isolation, chauffage, cohérence DPE — les données officielles priment, les incertitudes sont assumées.</p>
-        </div>
-        <div className="step">
-          <div className="num">03</div>
-          <h3>Répondez avec assurance</h3>
-          <p>Budget chiffré, arguments de négociation et réponses aux questions acheteurs, prêts en PDF.</p>
-        </div>
+        {mode === 'prix' ? (
+          <>
+            <div className="step">
+              <div className="num">01</div>
+              <h3>Préparation</h3>
+              <p>Localisation, photos du bien, et 2-5 annonces comparables du secteur — tout est utilisé pour ancrer l'estimation sur du concret.</p>
+            </div>
+            <div className="step">
+              <div className="num">02</div>
+              <h3>L'IA analyse</h3>
+              <p>Vraies ventes DVF du secteur, cohérence des finitions, DPE, étage — le calcul s'ancre sur des transactions réelles, pas des impressions.</p>
+            </div>
+            <div className="step">
+              <div className="num">03</div>
+              <h3>Estimation chiffrée</h3>
+              <p>Une fourchette de prix argumentée, avec le raisonnement détaillé — de quoi rassurer un vendeur ou recadrer un acheteur.</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="step">
+              <div className="num">01</div>
+              <h3>Préparation</h3>
+              <p>Photos du bien, texte de l'annonce, et le DPE officiel si vous l'avez — tout est utilisé. Simulez aussi votre texte avant parution de l'annonce !</p>
+            </div>
+            <div className="step">
+              <div className="num">02</div>
+              <h3>L'IA analyse</h3>
+              <p>Isolation, chauffage, cohérence DPE — les données officielles priment, les incertitudes sont assumées.</p>
+            </div>
+            <div className="step">
+              <div className="num">03</div>
+              <h3>Répondez avec assurance</h3>
+              <p>Budget chiffré, arguments de négociation et réponses aux questions acheteurs, prêts en PDF.</p>
+            </div>
+          </>
+        )}
       </div>
 
       <h2 className="section-title">Préparer le bien</h2>
