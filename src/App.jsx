@@ -215,6 +215,10 @@ export default function App() {
     annee_exacte: '',
     renovation_recente: false,
     renovation_esthetique: false,
+    brise_vue: false,
+    terrain_arbore: false,
+    abri_jardin: '',
+    abri_jardin_surface: '',
     ventilation_declaree: '',
     piscine: false,
     panneaux_solaires: false,
@@ -997,6 +1001,7 @@ export default function App() {
           </div>
           )}
 
+          {mode !== 'exterieurs' && (
           <label>
             DPE officiel (PDF ou photo, optionnel)
             <span className="hint">Si vous l'avez, l'IA extrait les données exactes du document plutôt que de se fier au champ "DPE connu" seul (texte lu directement, jusqu'à 10 pages).</span>
@@ -1014,6 +1019,7 @@ export default function App() {
               </span>
             </div>
           </label>
+          )}
 
           <label>
             Texte de l'annonce (optionnel)
@@ -1072,16 +1078,20 @@ export default function App() {
               Année exacte (si connue)
               <input name="annee_exacte" value={form.annee_exacte} onChange={handleFormChange} placeholder="ex : 1985" />
             </label>
+            {mode !== 'exterieurs' && (
             <label>
               Surface (m², optionnel)
               <span className="hint">Extraite automatiquement si vous joignez un DPE</span>
               <input name="surface" value={form.surface} onChange={handleFormChange} placeholder="ex : 95" />
             </label>
+            )}
+            {mode !== 'exterieurs' && (
             <label>
               DPE connu (optionnel)
               <span className="hint">Extrait automatiquement si vous joignez un DPE</span>
               <input name="dpe" value={form.dpe} onChange={handleFormChange} placeholder="ex : D" />
             </label>
+            )}
             {mode !== 'prix' && mode !== 'exterieurs' && (
               <label>
                 Type de ventilation (si connu)
@@ -1172,24 +1182,28 @@ export default function App() {
           )}
 
           <div className="grid">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="renovation_recente"
-                checked={form.renovation_recente}
-                onChange={handleFormChange}
-              />
-              Rénovation thermique connue (même partielle)
-            </label>
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="renovation_esthetique"
-                checked={form.renovation_esthetique}
-                onChange={handleFormChange}
-              />
-              Rénovation esthétique à prévoir (cuisine/SDB/peintures datées)
-            </label>
+            {mode !== 'exterieurs' && (
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="renovation_recente"
+                  checked={form.renovation_recente}
+                  onChange={handleFormChange}
+                />
+                Rénovation thermique connue (même partielle)
+              </label>
+            )}
+            {mode !== 'exterieurs' && (
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="renovation_esthetique"
+                  checked={form.renovation_esthetique}
+                  onChange={handleFormChange}
+                />
+                Rénovation esthétique à prévoir (cuisine/SDB/peintures datées)
+              </label>
+            )}
             <label className="checkbox-label">
               <input
                 type="checkbox"
@@ -1208,6 +1222,43 @@ export default function App() {
               />
               Panneaux solaires installés
             </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="brise_vue"
+                checked={form.brise_vue}
+                onChange={handleFormChange}
+              />
+              Brise-vue installé
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="terrain_arbore"
+                checked={form.terrain_arbore}
+                onChange={handleFormChange}
+              />
+              Terrain arboré
+            </label>
+            <label>
+              Abri de jardin
+              <select name="abri_jardin" value={form.abri_jardin} onChange={handleFormChange}>
+                <option value="">Aucun / non renseigné</option>
+                <option value="Cabanon simple">Cabanon simple (bois léger, kit)</option>
+                <option value="Abri en dur">Abri en dur (maçonné/structure solide)</option>
+              </select>
+            </label>
+            {form.abri_jardin && (
+              <label>
+                Surface de l'abri (m², optionnel)
+                <input
+                  name="abri_jardin_surface"
+                  value={form.abri_jardin_surface}
+                  onChange={handleFormChange}
+                  placeholder="ex : 12"
+                />
+              </label>
+            )}
           </div>
 
           <button type="submit" disabled={loading}>
