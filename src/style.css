@@ -851,6 +851,30 @@ button[type="submit"]:disabled { opacity: 0.55; cursor: default; }
   margin: 0;
 }
 
+.a-dire-box {
+  background: #EFF6F1;
+  border-left: 3px solid var(--ok);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-top: 8px;
+}
+.a-dire-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ok);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.a-dire-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
 button.secondary {
   background: transparent;
   color: var(--ink);

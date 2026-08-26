@@ -115,6 +115,27 @@ function reliabilityClass(value) {
   return 'medium';
 }
 
+// Sépare visuellement le constat technique de la phrase "à dire à l'oral" que l'IA
+// est censée toujours ajouter (marquée par 💬), pour que l'agent voie tout de suite
+// la réponse toute prête sans la chercher dans un paragraphe.
+function renderTechniquePoint(text) {
+  if (!text) return null;
+  const marker = '💬';
+  const idx = text.indexOf(marker);
+  if (idx === -1) return <p>{text}</p>;
+  const constat = text.slice(0, idx).trim();
+  const aDire = text.slice(idx + marker.length).replace(/^À dire si on vous pose la question\s*:\s*/i, '').trim();
+  return (
+    <>
+      {constat && <p>{constat}</p>}
+      <div className="a-dire-box">
+        <span className="a-dire-label">💬 À dire si on vous pose la question</span>
+        <p className="a-dire-text">{aDire}</p>
+      </div>
+    </>
+  );
+}
+
 function PasteInstructions() {
   return (
     <div className="paste-instructions">
@@ -1230,13 +1251,13 @@ export default function App() {
           {result.enveloppe_thermique && (
             <div className="section">
               <h3>Enveloppe thermique</h3>
-              <p>{result.enveloppe_thermique}</p>
+              {renderTechniquePoint(result.enveloppe_thermique)}
             </div>
           )}
           {result.chauffage_ventilation && (
             <div className="section">
               <h3>Chauffage / Ventilation</h3>
-              <p>{result.chauffage_ventilation}</p>
+              {renderTechniquePoint(result.chauffage_ventilation)}
             </div>
           )}
           {result.points_vigilance && result.points_vigilance.length > 0 && (
