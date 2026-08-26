@@ -242,8 +242,9 @@ export default function App() {
 
   const handlePhotoChange = (e) => {
     const maxPhotos = 8;
-    const files = Array.from(e.target.files).slice(0, maxPhotos);
-    setPhotos(files);
+    const nouvellesPhotos = Array.from(e.target.files);
+    setPhotos((prev) => [...prev, ...nouvellesPhotos].slice(0, maxPhotos));
+    e.target.value = ''; // permet de resélectionner le même fichier une prochaine fois si besoin
   };
 
   const removePhoto = (index) => {
