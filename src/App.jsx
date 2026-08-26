@@ -363,6 +363,13 @@ export default function App() {
         "Je vérifie les pièges administratifs classiques…",
         "Finalisation, presque prêt…"
       ]
+    : mode === 'exterieurs'
+    ? [
+        "J'observe le jardin et les abords…",
+        "Je repère les points sur la façade et les clôtures…",
+        "Je prépare les questions sur l'extérieur…",
+        "Finalisation, presque prêt…"
+      ]
     : [
         "J'analyse vos photos…",
         "Je lis les données du DPE…",
@@ -747,6 +754,24 @@ export default function App() {
               <p>De quoi tenir un rendez-vous sans être pris au dépourvu — rien à lire de long, juste l'essentiel.</p>
             </div>
           </>
+        ) : mode === 'exterieurs' ? (
+          <>
+            <div className="step">
+              <div className="num">01</div>
+              <h3>Préparation</h3>
+              <p>Photos du jardin, de la façade, des extérieurs — pas besoin de DPE ni de surface de terrain précise.</p>
+            </div>
+            <div className="step">
+              <div className="num">02</div>
+              <h3>L'IA repère</h3>
+              <p>Jardin, clôtures, façade, dépendances, piscine — atouts à valoriser et points à anticiper en visite.</p>
+            </div>
+            <div className="step">
+              <div className="num">03</div>
+              <h3>Prêt pour le tour du terrain</h3>
+              <p>Questions et réponses prêtes spécifiquement sur l'extérieur du bien.</p>
+            </div>
+          </>
         ) : (
           <>
             <div className="step">
@@ -792,6 +817,13 @@ export default function App() {
         >
           🎯 Questions & Pièges
         </button>
+        <button
+          type="button"
+          className={`mode-btn ${mode === 'exterieurs' ? 'mode-btn-active' : ''}`}
+          onClick={() => setMode('exterieurs')}
+        >
+          🌳 Extérieurs
+        </button>
       </div>
       {mode === 'prix' && (
         <p className="mode-hint">
@@ -803,6 +835,12 @@ export default function App() {
         <p className="mode-hint">
           Idéal juste avant un rendez-vous ou une visite : questions pièges d'un acheteur méfiant,
           points techniques à vérifier, erreurs administratives à éviter — rien d'autre.
+        </p>
+      )}
+      {mode === 'exterieurs' && (
+        <p className="mode-hint">
+          Jardin, terrain, façade, clôtures, dépendances — les questions et arguments sur
+          l'extérieur du bien, sans DPE ni surface de terrain nécessaires.
         </p>
       )}
       <div className="form-card">
@@ -1044,7 +1082,7 @@ export default function App() {
               <span className="hint">Extrait automatiquement si vous joignez un DPE</span>
               <input name="dpe" value={form.dpe} onChange={handleFormChange} placeholder="ex : D" />
             </label>
-            {mode !== 'prix' && (
+            {mode !== 'prix' && mode !== 'exterieurs' && (
               <label>
                 Type de ventilation (si connu)
                 <select name="ventilation_declaree" value={form.ventilation_declaree} onChange={handleFormChange}>
@@ -1056,7 +1094,7 @@ export default function App() {
                 </select>
               </label>
             )}
-            {mode !== 'prix' && (
+            {mode !== 'prix' && mode !== 'exterieurs' && (
               <label>
                 Production d'eau chaude (si connue)
                 <select name="production_eau_chaude" value={form.production_eau_chaude} onChange={handleFormChange}>
@@ -1073,7 +1111,7 @@ export default function App() {
             )}
           </div>
 
-          {mode !== 'prix' && (
+          {mode !== 'prix' && mode !== 'exterieurs' && (
           <div className="collapsible">
             <button
               type="button"
@@ -1103,7 +1141,7 @@ export default function App() {
           </div>
           )}
 
-          {mode !== 'prix' && (
+          {mode !== 'prix' && mode !== 'exterieurs' && (
           <div className="collapsible">
             <button
               type="button"
@@ -1179,6 +1217,8 @@ export default function App() {
               ? 'Estimer le prix'
               : mode === 'pieges'
               ? 'Générer questions & pièges'
+              : mode === 'exterieurs'
+              ? 'Analyser les extérieurs'
               : 'Obtenir mes réponses'}
           </button>
 
@@ -1218,7 +1258,7 @@ export default function App() {
                   ajoute au moins une annonce comparable (photo ou description), puis relance.
                 </p>
               )
-            : mode === 'pieges'
+            : (mode === 'pieges' || mode === 'exterieurs')
             ? !result.questions_reponses?.length && !result.pieges_techniques?.length && !result.pieges_administratifs?.length && (
                 <p className="empty-report-note">
                   Rien n'a pu être généré avec les données fournies —
@@ -1303,11 +1343,11 @@ export default function App() {
             </div>
           )}
 
-          {mode === 'pieges' && (
+          {(mode === 'pieges' || mode === 'exterieurs') && (
             <>
               {result.questions_reponses && result.questions_reponses.length > 0 && (
                 <div className="section qa">
-                  <h3>Questions pièges d'un acheteur méfiant — réponses prêtes</h3>
+                  <h3>{mode === 'exterieurs' ? "Questions sur l'extérieur — réponses prêtes" : "Questions pièges d'un acheteur méfiant — réponses prêtes"}</h3>
                   {result.questions_reponses.map((qa, i) => (
                     <div key={i} className="qa-item">
                       <p className="qa-question">« {qa.question} »</p>
@@ -1318,7 +1358,7 @@ export default function App() {
               )}
               {result.pieges_techniques && result.pieges_techniques.length > 0 && (
                 <div className="section vigilance">
-                  <h3>Points techniques à vérifier avant la visite</h3>
+                  <h3>{mode === 'exterieurs' ? "Points à vérifier sur l'extérieur" : "Points techniques à vérifier avant la visite"}</h3>
                   <ul>
                     {result.pieges_techniques.map((p, i) => <li key={i}>{p}</li>)}
                   </ul>
@@ -1382,16 +1422,16 @@ export default function App() {
 
           <div className="pdf-buttons">
             <button onClick={() => downloadPdf('agent')} className="secondary">
-              {mode === 'pieges' ? '📋 Télécharger en PDF' : '📋 Version complète (usage interne)'}
+              {(mode === 'pieges' || mode === 'exterieurs') ? '📋 Télécharger en PDF' : '📋 Version complète (usage interne)'}
             </button>
-            {mode !== 'pieges' && (
+            {(mode !== 'pieges' && mode !== 'exterieurs') && (
               <button onClick={() => downloadPdf('acheteur')} className="secondary secondary-alt">
                 📄 Version à partager (sans négociation)
               </button>
             )}
           </div>
           <p className="pdf-hint">
-            {mode === 'pieges'
+            {(mode === 'pieges' || mode === 'exterieurs')
               ? 'Ce contenu est réservé à votre préparation — gardez-le pour vous, ne le partagez pas avec l\'acheteur.'
               : 'La version complète inclut vos arguments de négociation et les réponses préparées — gardez-la pour vous. Utilisez la version "à partager" pour l\'acheteur ou le vendeur.'}
           </p>
