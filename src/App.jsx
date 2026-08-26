@@ -217,6 +217,7 @@ export default function App() {
     renovation_esthetique: false,
     brise_vue: false,
     terrain_arbore: false,
+    abri_bois_velo: false,
     abri_jardin: '',
     abri_jardin_surface: '',
     ventilation_declaree: '',
@@ -1240,11 +1241,21 @@ export default function App() {
               />
               Terrain arboré
             </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="abri_bois_velo"
+                checked={form.abri_bois_velo}
+                onChange={handleFormChange}
+              />
+              Abri bois/vélos (auvent, appentis)
+            </label>
             <label>
               Abri de jardin
               <select name="abri_jardin" value={form.abri_jardin} onChange={handleFormChange}>
                 <option value="">Aucun / non renseigné</option>
-                <option value="Cabanon simple">Cabanon simple (bois léger, kit)</option>
+                <option value="Cabanon simple">Cabanon simple (kit bois léger, type grande distribution)</option>
+                <option value="Cabanon qualitatif">Cabanon qualitatif (bois massif type chalet/autrichien)</option>
                 <option value="Abri en dur">Abri en dur (maçonné/structure solide)</option>
               </select>
             </label>
