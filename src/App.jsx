@@ -334,6 +334,14 @@ export default function App() {
         "Patientez quelques instants, l'analyse est en cours…",
         "Finalisation de l'estimation…"
       ]
+    : mode === 'pieges'
+    ? [
+        "Je repère les points sensibles du bien…",
+        "Je prépare les questions d'un acheteur méfiant…",
+        "Je liste les points techniques à vérifier…",
+        "Je vérifie les pièges administratifs classiques…",
+        "Finalisation, presque prêt…"
+      ]
     : [
         "J'analyse vos photos…",
         "Je lis les données du DPE…",
@@ -614,6 +622,18 @@ export default function App() {
         .join('\n\n');
       addSection('Questions probables de l\'acheteur — réponses prêtes', qaText);
     }
+    if (includeNegotiation && result.pieges_techniques && result.pieges_techniques.length > 0) {
+      addSection(
+        'Points techniques à vérifier avant la visite',
+        result.pieges_techniques.map((p) => `• ${p}`).join('\n')
+      );
+    }
+    if (includeNegotiation && result.pieges_administratifs && result.pieges_administratifs.length > 0) {
+      addSection(
+        'Pièges administratifs / juridiques à éviter',
+        result.pieges_administratifs.map((p) => `• ${p}`).join('\n')
+      );
+    }
     addSection('Score de transparence', result.score_transparence);
 
     // Ligne de séparation + disclaimer final
@@ -688,6 +708,24 @@ export default function App() {
               <p>Une fourchette de prix argumentée, avec le raisonnement détaillé — de quoi rassurer un vendeur ou recadrer un acheteur.</p>
             </div>
           </>
+        ) : mode === 'pieges' ? (
+          <>
+            <div className="step">
+              <div className="num">01</div>
+              <h3>Préparation</h3>
+              <p>Photos, DPE et texte de l'annonce — tout ce que vous avez déjà. Rien de plus à remplir.</p>
+            </div>
+            <div className="step">
+              <div className="num">02</div>
+              <h3>L'IA anticipe</h3>
+              <p>Questions pièges d'un acheteur méfiant, points techniques à vérifier, erreurs administratives à éviter.</p>
+            </div>
+            <div className="step">
+              <div className="num">03</div>
+              <h3>Prêt en 30 secondes</h3>
+              <p>De quoi tenir un rendez-vous sans être pris au dépourvu — rien à lire de long, juste l'essentiel.</p>
+            </div>
+          </>
         ) : (
           <>
             <div className="step">
@@ -726,11 +764,24 @@ export default function App() {
         >
           💰 Estimation de prix seule
         </button>
+        <button
+          type="button"
+          className={`mode-btn ${mode === 'pieges' ? 'mode-btn-active' : ''}`}
+          onClick={() => setMode('pieges')}
+        >
+          🎯 Questions & Pièges
+        </button>
       </div>
       {mode === 'prix' && (
         <p className="mode-hint">
           Idéal pour relancer un vendeur qui bloque sur le prix. Gardez photos et DPE si vous
           les avez (ça ancre la comparaison), les détails techniques fins sont masqués ici.
+        </p>
+      )}
+      {mode === 'pieges' && (
+        <p className="mode-hint">
+          Idéal juste avant un rendez-vous ou une visite : questions pièges d'un acheteur méfiant,
+          points techniques à vérifier, erreurs administratives à éviter — rien d'autre.
         </p>
       )}
       <div className="form-card">
@@ -972,7 +1023,7 @@ export default function App() {
               <span className="hint">Extrait automatiquement si vous joignez un DPE</span>
               <input name="dpe" value={form.dpe} onChange={handleFormChange} placeholder="ex : D" />
             </label>
-            {mode === 'diagnostic' && (
+            {mode !== 'prix' && (
               <label>
                 Type de ventilation (si connu)
                 <select name="ventilation_declaree" value={form.ventilation_declaree} onChange={handleFormChange}>
@@ -984,7 +1035,7 @@ export default function App() {
                 </select>
               </label>
             )}
-            {mode === 'diagnostic' && (
+            {mode !== 'prix' && (
               <label>
                 Production d'eau chaude (si connue)
                 <select name="production_eau_chaude" value={form.production_eau_chaude} onChange={handleFormChange}>
@@ -1001,7 +1052,7 @@ export default function App() {
             )}
           </div>
 
-          {mode === 'diagnostic' && (
+          {mode !== 'prix' && (
           <div className="collapsible">
             <button
               type="button"
@@ -1031,7 +1082,7 @@ export default function App() {
           </div>
           )}
 
-          {mode === 'diagnostic' && (
+          {mode !== 'prix' && (
           <div className="collapsible">
             <button
               type="button"
@@ -1101,7 +1152,13 @@ export default function App() {
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Analyse en cours…' : mode === 'prix' ? 'Estimer le prix' : 'Obtenir mes réponses'}
+            {loading
+              ? 'Analyse en cours…'
+              : mode === 'prix'
+              ? 'Estimer le prix'
+              : mode === 'pieges'
+              ? 'Générer questions & pièges'
+              : 'Obtenir mes réponses'}
           </button>
 
           {loading && (
@@ -1138,6 +1195,13 @@ export default function App() {
                 <p className="empty-report-note">
                   L'estimation n'a pas pu être générée avec les données fournies —
                   ajoute au moins une annonce comparable (photo ou description), puis relance.
+                </p>
+              )
+            : mode === 'pieges'
+            ? !result.questions_reponses?.length && !result.pieges_techniques?.length && !result.pieges_administratifs?.length && (
+                <p className="empty-report-note">
+                  Rien n'a pu être généré avec les données fournies —
+                  ajoute au moins des photos, un DPE ou le texte de l'annonce, puis relance.
                 </p>
               )
             : !result.verdict_global && !result.enveloppe_thermique && !result.estimation_prix && !result.budget_estime && (
@@ -1217,6 +1281,39 @@ export default function App() {
               <p>{result.estimation_prix}</p>
             </div>
           )}
+
+          {mode === 'pieges' && (
+            <>
+              {result.questions_reponses && result.questions_reponses.length > 0 && (
+                <div className="section qa">
+                  <h3>Questions pièges d'un acheteur méfiant — réponses prêtes</h3>
+                  {result.questions_reponses.map((qa, i) => (
+                    <div key={i} className="qa-item">
+                      <p className="qa-question">« {qa.question} »</p>
+                      <p className="qa-reponse">{qa.reponse}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {result.pieges_techniques && result.pieges_techniques.length > 0 && (
+                <div className="section vigilance">
+                  <h3>Points techniques à vérifier avant la visite</h3>
+                  <ul>
+                    {result.pieges_techniques.map((p, i) => <li key={i}>{p}</li>)}
+                  </ul>
+                </div>
+              )}
+              {result.pieges_administratifs && result.pieges_administratifs.length > 0 && (
+                <div className="section vigilance">
+                  <h3>Pièges administratifs / juridiques à éviter</h3>
+                  <ul>
+                    {result.pieges_administratifs.map((p, i) => <li key={i}>{p}</li>)}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+
           {mode === 'diagnostic' && ((result.arguments_negociation && result.arguments_negociation.length > 0) ||
             (result.questions_reponses && result.questions_reponses.length > 0)) && (
             <div className="agent-zone">
@@ -1264,15 +1361,18 @@ export default function App() {
 
           <div className="pdf-buttons">
             <button onClick={() => downloadPdf('agent')} className="secondary">
-              📋 Version complète (usage interne)
+              {mode === 'pieges' ? '📋 Télécharger en PDF' : '📋 Version complète (usage interne)'}
             </button>
-            <button onClick={() => downloadPdf('acheteur')} className="secondary secondary-alt">
-              📄 Version à partager (sans négociation)
-            </button>
+            {mode !== 'pieges' && (
+              <button onClick={() => downloadPdf('acheteur')} className="secondary secondary-alt">
+                📄 Version à partager (sans négociation)
+              </button>
+            )}
           </div>
           <p className="pdf-hint">
-            La version complète inclut vos arguments de négociation et les réponses préparées —
-            gardez-la pour vous. Utilisez la version "à partager" pour l'acheteur ou le vendeur.
+            {mode === 'pieges'
+              ? 'Ce contenu est réservé à votre préparation — gardez-le pour vous, ne le partagez pas avec l\'acheteur.'
+              : 'La version complète inclut vos arguments de négociation et les réponses préparées — gardez-la pour vous. Utilisez la version "à partager" pour l\'acheteur ou le vendeur.'}
           </p>
 
           <p className="disclaimer">
